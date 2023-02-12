@@ -5,9 +5,11 @@ from random import choice, seed
 seed(42)  # Get same results temporarily
 
 # Note: WHITE goes left->right, BLACK goes top->bottom
+# seems like the obtuse corner is bottom-left
+# numbers run across the top, letters run downwards
 
 class RandomHexBot:
-    def __init__(self, color, board_size=11):
+    def __init__(self, color, board_size=10):
         self.color = color
         self.opp = BLACK if color == WHITE else WHITE
         self.move_count = 0
@@ -69,7 +71,8 @@ class RandomHexBot:
         """
         board_size = int(board_size)
         self.board_size = board_size
-        self.board = [EMPTY for i in range(board_size**2)]
+        # TODO: create a Board class that can be searched more efficiently than a 2D array
+        self.board = [EMPTY for _ in range(board_size**2)]
         self.move_count = 0
 
         self.init_neighbours()

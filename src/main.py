@@ -8,7 +8,7 @@ from constants import WHITE, BLACK
 import argparse
 
 def main():
-    parser = argparse.ArgumentParser(description="Example hex bot that makes random valid placements")
+    parser = argparse.ArgumentParser(description="Deus Hex Machina: A Hex-playing bot")
     parser.add_argument("color", metavar="<COLOR>", choices=["white", "black"],
                         help="This bot's color. White is left->right")
     args = parser.parse_args()
