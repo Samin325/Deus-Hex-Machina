@@ -8,6 +8,11 @@ from twobridge import TwoBridge
 
 class Board:
     def __init__(self, size: int) -> None:
+        """ Create a Board object
+
+        Parameters:
+            size: (int) size of the game board
+        """
         self.__boardsize = size
         self.cells = dict()
         self.blacks = dict()
@@ -19,6 +24,7 @@ class Board:
         return self.__boardsize
 
     def create_all_cells(self) -> None:
+        """ Creates a Cell object for every coord on the board"""
         # create all the standard cells
         for i in range(1, self.__boardsize+1):
             for j in range(1, self.__boardsize+1):
@@ -41,7 +47,7 @@ class Board:
             )
         bottom = Cell(Edges.BOTTOM, Color.WHITE, self.__boardsize)
         for x in range (1, self.__boardsize+1):
-            bottom.neighbours.append(Coord(i, 1))
+            bottom.neighbours.append(Coord(x, 1))
         for x in range (1, self.__boardsize):
             dest = Coord(x, 2)
             bottom.twobridges[dest] = TwoBridge(
@@ -83,9 +89,9 @@ class Board:
         self.cells[Edges.RIGHT] = right
         self.blacks[Edges.RIGHT] = right
 
+
     def bi_bfs(self, si: Coord, sg: Coord) -> bool:
-        """
-        Run Bi-BFS algorithm to find path between two sides of the board
+        """ Run Bi-BFS algorithm to find path between start and goal state
 
         Arguments:
         si (Coord): initial state
@@ -102,7 +108,7 @@ class Board:
         counterf = 0
         closedf = set()
         closedf.add(si)
-    
+
         # initialize the backward lists with goal state
         openb = []
         openb.append(sg)
@@ -111,7 +117,7 @@ class Board:
         closedb.add(sg)
 
         search_forwards = True
-    
+
         # run Bi-BS
         while counterf < len(openf) and counterb < len(openb):
             if search_forwards:
@@ -156,7 +162,7 @@ class Board:
 
         # if the loop has exited and no solution found, there is no solution, so return accordingly
         return False
-    
+
 
     def check_win(self, movecount: int, your_color: Color) -> int:
         """Check whether or not the game has come to a close
@@ -168,10 +174,10 @@ class Board:
         Returns:
             int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise.
         """
-        #  game cannot have been won if less than 19 moves have been made
-        if (movecount<19):
+        #  game cannot have been won if less than '19' moves have been made
+        if (movecount < self.__boardsize*2-1):
             return 0
-        
+
         winner = 0
         # check if white has won
         if self.bi_bfs(Edges.TOP, Edges.BOTTOM):
@@ -180,7 +186,7 @@ class Board:
         elif self.bi_bfs(Edges.LEFT, Edges.RIGHT):
             winner = -1
         # return the state of the game
-        return winner*your_color
+        return winner * (1 if your_color == Color.WHITE else -1)
 
 
     def display(self) -> None:
