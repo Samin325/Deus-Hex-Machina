@@ -100,6 +100,11 @@ class RandomHexBot:
 
     def make_move(self):
         """Generates the move. For this bot, the move is randomly selected from all empty positions."""
+        if self.move_count == 1:
+            print("swap")
+            self.move_count += 1
+            return
+
         empties = []
         for i, cell in enumerate(self.board):
             if cell == EMPTY:
@@ -109,6 +114,13 @@ class RandomHexBot:
         self.sety(move)
         print(move)
         return
+
+    def swap(self):
+        """
+        Performs the 'swap' move
+        """
+        self.opp, self.color = self.color, self.opp
+        self.move_count += 1
 
     def seto(self, move):
         """Tells the bot about a move for the other bot
