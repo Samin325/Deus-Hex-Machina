@@ -28,6 +28,10 @@ class Cell:
 
     def populate_neighbours(self) -> None:
         """ Calculates neighbours and populates list of neighbours of this cell """
+        # if there is a 0.5 in either of the coords, then its a special edge piece, so skip
+        if (self.coord.getx() == 0.5 or self.coord.gety() == 0.5):
+            return
+
         # neighbour to top left exists only if cell is not on top row and not first column
         if (self.coord.gety()<self.__boardsize and self.coord.getx()>1):
             self.neighbours.append(Coord(self.coord.getx()-1,self.coord.gety()+1))
