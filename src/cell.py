@@ -29,7 +29,7 @@ class Cell:
     def populate_neighbours(self) -> None:
         """ Calculates neighbours and populates list of neighbours of this cell """
         # if there is a 0.5 in either of the coords, then its a special edge piece, so skip
-        if (self.coord.getx() == 0.5 or self.coord.gety() == 0.5):
+        if (self.coord.getx() == -1 or self.coord.gety() == -1):
             return
 
         # neighbour to top left exists only if cell is not on top row and not first column
@@ -73,7 +73,7 @@ class Cell:
     def populate_twobridges(self) -> None:
         """ Calculates which positions this cell could be strong connected to """
         # if there is a 0.5 in either of the coords, then its a special edge piece, so skip
-        if (self.coord.getx() == 0.5 or self.coord.gety() == 0.5):
+        if (self.coord.getx() == -1 or self.coord.gety() == -1):
             return
 
         # twobridges is indexed by coords of the desitination, represented as dest
@@ -102,11 +102,11 @@ class Cell:
         # two bridge upper left only exists if not in first two columns and not in top row
         if (self.coord.gety()<self.__boardsize and self.coord.getx()>2):
             dest = Coord(self.coord.getx()-2,self.coord.gety()+1)
-            deps = (Coord(self.coord.getx()-1,self.coord.gety(), Coord(self.coord.getx()-1,self.coord.gety()+1)))
+            deps = (Coord(self.coord.getx()-1,self.coord.gety()), Coord(self.coord.getx()-1,self.coord.gety()+1))
             self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
         elif (self.coord.gety()<self.__boardsize and self.coord.getx()==2):
             dest = Edges.LEFT
-            deps = (Coord(self.coord.getx()-1,self.coord.gety(), Coord(self.coord.getx()-1,self.coord.gety()+1)))
+            deps = (Coord(self.coord.getx()-1,self.coord.gety()), Coord(self.coord.getx()-1,self.coord.gety()+1))
             self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
 
         # two bridge lower right only exists if not in last two columns and not in bottom row

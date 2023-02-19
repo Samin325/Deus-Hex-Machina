@@ -83,8 +83,28 @@ class Board:
     def check_win() -> Color:
         pass
 
-    def display() -> None:
-        pass
+    def display(self) -> None:
+        """Prints the board to stdout. This is primarily used for
+        testing purposes & when playing against a human opponent
+        """
+        tile_chars = {
+            Color.EMPTY: ".",
+            Color.BLACK: "B",
+            Color.WHITE: "W",
+        }
+
+        chars = []
+        for y in range(self.__boardsize, 0, -1):
+            for _ in range(y-1):
+                chars.append(' ')
+            for x in range(1, self.__boardsize+1):
+                chars.append( tile_chars[self.cells[Coord(x, y)].color] )
+                chars.append(' ')
+            if y != 1:
+                chars.append('\n')
+
+        print("".join(chars))
+        return
 
     def set(color, coord) -> None:
         pass
