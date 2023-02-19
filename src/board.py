@@ -73,10 +73,14 @@ class Board:
                 Status.TO_BE
             )
 
-        # populate the cells dicts
+        # populate the relevant dicts with the edge cells
+        self.cells[Edges.TOP] = top
         self.whites[Edges.TOP] = top
+        self.cells[Edges.BOTTOM] = bottom
         self.whites[Edges.BOTTOM] = bottom
+        self.cells[Edges.LEFT] = left
         self.blacks[Edges.LEFT] = left
+        self.cells[Edges.RIGHT] = right
         self.blacks[Edges.RIGHT] = right
 
     def dijkstra(self, si: Coord, sg: Coord) -> int:
@@ -126,12 +130,64 @@ class Board:
         print("".join(chars))
         return
 
-    def set(color, coord) -> None:
-        pass
+    def set(self, coord: Coord, color: Color) -> bool:
+        """ Set a piece on an empty cell of the board
 
-    def swap():
-        pass
+        Parameters:
+            coord: (Coord) coordinate to place the piece on
+            color: (Color) what colour piece to place
 
-    def unset():
-        pass
+        Returns: (bool)
+            True if successful, False if the cell was not empty
+        """
+        if self.cells[coord].color != Color.EMPTY:
+            return False
+        self.cells[coord].color = color
+        if color == Color.BLACK:
+            self.blacks[coord] = self.empties.pop(coord)
+        elif color == Color.WHITE:
+            self.whites[coord] = self.empties.pop(coord)
+        else:
+            return False  # attempted to set a cell to empty. use unset()
+        return True
 
+    def swap(self) -> bool:
+        """ Perform the 'swap' move
+
+        Returns: (bool)
+            True if successful, False if swap move impermissible
+        """
+        ## MAY NEED TO REMOVE ENTIRELY. BOT SWAPS PLAYERS INSTEAD OF TILES
+        if len(self.blacks) != 3 and len(self.whites) != 3:
+            return False
+        if len(self.blacks) == 3:
+            for coord in self.blacks:
+                if coord not in [Edges.LEFT, Edges.RIGHT]:
+                    self.unset(coord)
+                    self.set(coord, Color.WHITE)
+                    break
+        else:
+            for coord in self.whites:
+                if coord not in [Edges.TOP, Edges.BOTTOM]:
+                    self.unset(coord)
+                    self.set(coord, Color.BLACK)
+                    break
+
+    def unset(self, coord: Coord) -> bool:
+        """ Remove a piece from the board
+
+        Parameters:
+            coord: (Coord) coordinate to remove the piece from
+
+        Returns: (bool)
+            True if successful, False if there was no piece there
+        """
+        if self.cells[coord].color == Color.EMPTY:
+            return False
+        old_color = self.cells[coord].color
+        self.cells[coord].color = Color.EMPTY
+        if old_color == Color.BLACK:
+            self.empties[coord] = self.blacks.pop(coord)
+        else:
+            self.empties[coord] = self.whites.pop(coord)
+        return True
