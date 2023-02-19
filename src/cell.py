@@ -1,6 +1,6 @@
 # coord.py
 
-# from twobridge import TwoBridge
+from twobridge import TwoBridge
 from constants import Edges, Color
 from coord import Coord
 
