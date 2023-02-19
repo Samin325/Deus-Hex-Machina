@@ -79,9 +79,29 @@ class Board:
         self.blacks[Edges.LEFT] = left
         self.blacks[Edges.RIGHT] = right
 
-
-    def check_win() -> Color:
+    def dijkstra(self, si: Coord, sg: Coord) -> int:
         pass
+
+    def check_win(self, movecount: int) -> int:
+        """Checks whether or not the game has come to a close.
+
+        Parameters:
+            movecount (int) - number of moves that have been played
+
+        Returns:
+            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise. Note that draws
+            are mathematically impossible in Hex.
+        """
+        #  game cannot have been won if less than 19 moves have been made
+        if (movecount<19):
+            return 0
+
+        # check if we have won
+
+        # check if our opponent has won
+
+        # if no one has won, game is not won
+        return 0
 
     def display(self) -> None:
         """Prints the board to stdout. This is primarily used for
@@ -114,3 +134,4 @@ class Board:
 
     def unset():
         pass
+
