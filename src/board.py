@@ -83,11 +83,83 @@ class Board:
         self.cells[Edges.RIGHT] = right
         self.blacks[Edges.RIGHT] = right
 
-    def dijkstra(self, si: Coord, sg: Coord) -> int:
-        pass
+    def bi_bfs(self, si: Coord, sg: Coord) -> bool:
+        """
+        Run Bi-BFS algorithm to find path between start and goal state
 
-    def check_win(self, movecount: int) -> int:
-        """Checks whether or not the game has come to a close.
+        Arguments:
+        si: initial state
+        sg: goal state
+        self: map in which the states exist
+
+        Returns:
+        (bool) true if game has been won by this side, false if not
+        """
+        # initialize the forward open and closed (set) lists twith starting state
+        color = self.cells[si].color
+        openf = []
+        openf.append(si)
+        counterf = 0
+        closedf = set()
+        closedf.add(si)
+    
+        # initialize the backward lists with goal state
+        openb = []
+        openb.append(sg)
+        counterb = 0
+        closedb = set()
+        closedb.add(sg)
+
+        search_forwards = True
+    
+        # run Bi-BS
+        while counterf < len(openf) and counterb < len(openb):
+            if search_forwards:
+                coord = openf[counterf]
+                counterf+=1
+
+                # get a list of children of the node that are the same color
+                children = []
+                for node in self.cells[coord].neighbours:
+                    if self.cells[node].color == color:
+                        children.append(node)
+
+                for child in children:
+                    # if the child exists in the closed backwards list, a path has been found and the game won
+                    if child in closedb:
+                        return True
+
+                    # if the child does not exist in the closed forward list, add to open and closed forward lists
+                    if child not in closedf:
+                        openf.append(child)
+                        closedf.add(child)
+
+            # else, expand from backwards (same as done above but with switched backwards/forwards lists)
+            else:
+                coord = openb[counterb]
+                counterb += 1
+
+                children = []
+                for node in self.cells[coord].neighbours:
+                    if self.cells[node].color == color:
+                        children.append(node)
+
+                for child in children:
+                    if child in closedf:
+                        return True
+
+                    if child not in closedb:
+                        openb.append(child)
+                        closedb.add(child)
+
+            search_forwards = not search_forwards
+
+        # if the loop has exited and no solution found, there is no solution, so return accordingly
+        return False
+    
+
+    def check_win(self, movecount: int, your_color: Color) -> int:
+        """Check whether or not the game has come to a close
 
         Parameters:
             movecount (int) - number of moves that have been played
@@ -99,13 +171,17 @@ class Board:
         #  game cannot have been won if less than 19 moves have been made
         if (movecount<19):
             return 0
+        
+        winner = 0
+        # check if white has won
+        if self.bi_bfs(Edges.TOP, Edges.BOTTOM):
+            winner = 1
+        # check if black has won
+        elif self.bi_bfs(Edges.LEFT, Edges.RIGHT):
+            winner = -1
+        # return the state of the game
+        return winner*your_color
 
-        # check if we have won
-
-        # check if our opponent has won
-
-        # if no one has won, game is not won
-        return 0
 
     def display(self) -> None:
         """Prints the board to stdout. This is primarily used for
