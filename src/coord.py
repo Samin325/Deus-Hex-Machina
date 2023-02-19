@@ -6,8 +6,8 @@ class Coord:
         """ Create a Coord object
 
         Parameters:
-            x: (int) position across. converted to letter
-            y: (int) position downwards. remains as number
+            x: (int) position across (left to right). converted to letter
+            y: (int) position upwards. remains as number
         """
         # may need to revise parameters later
         self.__x = x
@@ -24,7 +24,7 @@ class Coord:
         return self.__y
 
     def __hash__(self) -> int:
-        return self.__x * 32 + self.__y  # doesn't really matter tbh
+        return self.__x * 32 + self.__y
 
     def __eq__(self, __o: object) -> bool:
         return self.__x == __o.getx() and self.__y == __o.gety()
