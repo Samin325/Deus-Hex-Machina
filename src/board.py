@@ -85,11 +85,11 @@ class Board:
 
     def bi_bfs(self, si: Coord, sg: Coord) -> bool:
         """
-        Run Bi-BFS algorithm to find path between start and goal state
+        Run Bi-BFS algorithm to find path between two sides of the board
 
         Arguments:
-        si: initial state
-        sg: goal state
+        si (Coord): initial state
+        sg (Coord): goal state
         self: map in which the states exist
 
         Returns:
@@ -163,10 +163,10 @@ class Board:
 
         Parameters:
             movecount (int) - number of moves that have been played
+            your_color (Color) - the color that we are playing as
 
         Returns:
-            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise. Note that draws
-            are mathematically impossible in Hex.
+            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise.
         """
         #  game cannot have been won if less than 19 moves have been made
         if (movecount<19):
