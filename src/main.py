@@ -4,7 +4,7 @@ This is an example of a script used to interact with the Hex bot.
 """
 import sys
 from bot import RandomHexBot
-from constants import WHITE, BLACK
+from constants import Color
 import argparse
 
 def main():
@@ -13,7 +13,7 @@ def main():
                         help="This bot's color. White is left->right")
     args = parser.parse_args()
 
-    color = WHITE if args.color == "white" else BLACK
+    color = Color.WHITE if args.color == "white" else Color.BLACK
     bot = RandomHexBot(color)
 
     help_items = [

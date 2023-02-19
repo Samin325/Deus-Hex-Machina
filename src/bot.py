@@ -1,5 +1,5 @@
 from multiprocessing.sharedctypes import Value
-from constants import EMPTY, WHITE, BLACK
+from constants import Color
 from random import choice, seed
 
 seed(42)  # Get same results temporarily
@@ -11,7 +11,7 @@ seed(42)  # Get same results temporarily
 class RandomHexBot:
     def __init__(self, color, board_size=10):
         self.color = color
-        self.opp = BLACK if color == WHITE else WHITE
+        self.opp = Color.BLACK if color == Color.WHITE else Color.WHITE
         self.move_count = 0
         self.init_board(board_size)
 
@@ -72,7 +72,7 @@ class RandomHexBot:
         board_size = int(board_size)
         self.board_size = board_size
         # TODO: create a Board class that can be searched more efficiently than a 2D array
-        self.board = [EMPTY for _ in range(board_size**2)]
+        self.board = [Color.EMPTY for _ in range(board_size**2)]
         self.move_count = 0
 
         self.init_neighbours()
@@ -85,9 +85,9 @@ class RandomHexBot:
             bool: True if the command exists and ran successfully, False otherwise
         """
         tile_chars = {
-            EMPTY: ".",
-            BLACK: "B",
-            WHITE: "W",
+            Color.EMPTY: ".",
+            Color.BLACK: "B",
+            Color.WHITE: "W",
         }
 
         chars = list(map(lambda x: tile_chars[x], self.board))
@@ -107,7 +107,7 @@ class RandomHexBot:
 
         empties = []
         for i, cell in enumerate(self.board):
-            if cell == EMPTY:
+            if cell == Color.EMPTY:
                 empties.append(i)
 
         move = self.coord_to_move(choice(empties))
@@ -130,7 +130,7 @@ class RandomHexBot:
         """
         # TODO: Handle swap move. Logic moved to move_to_coord()
         coord = self.move_to_coord(move)
-        if self.board[coord] == EMPTY:
+        if self.board[coord] == Color.EMPTY:
             # TODO: Warn or not?
             #print("Trying to play on a non-empty square!")
             self.board[coord] = self.opp
@@ -144,7 +144,7 @@ class RandomHexBot:
             move (str): A human-readable position on the board
         """
         coord = self.move_to_coord(move)
-        if self.board[coord] != EMPTY:
+        if self.board[coord] != Color.EMPTY:
             #print("Trying to play on a non-empty square!")
             return
         self.board[coord] = self.color
@@ -161,7 +161,7 @@ class RandomHexBot:
         """
 
         coord = self.move_to_coord(move)
-        self.board[coord] = EMPTY
+        self.board[coord] = Color.EMPTY
         return True
 
     def check_win(self):
@@ -183,9 +183,9 @@ class RandomHexBot:
             is_right_column = (i + 1) % self.board_size == 0
             is_bottom_row = i >= self.board_size * (self.board_size - 1)
 
-            if color == WHITE and is_right_column:
+            if color == Color.WHITE and is_right_column:
                 return True
-            elif color == BLACK and is_bottom_row:
+            elif color == Color.BLACK and is_bottom_row:
                 return True
 
             # Label hexagon as 'visited' so we don't get infinite recusion
@@ -205,13 +205,13 @@ class RandomHexBot:
         # Iterate over all starting spaces for black & white, performing dfs on empty
         # spaces (hint: this leads to repeated computation!)
         for i in range(0, self.board_size):
-            if self.board[i] == BLACK and dfs(i, BLACK):
-                print(1 if self.color == BLACK else -1)
+            if self.board[i] == Color.BLACK and dfs(i, Color.BLACK):
+                print(1 if self.color == Color.BLACK else -1)
                 return
 
         for i in range(0, len(self.board), self.board_size):
-            if self.board[i] == WHITE and dfs(i, WHITE):
-                print(1 if self.color == WHITE else -1)
+            if self.board[i] == Color.WHITE and dfs(i, Color.WHITE):
+                print(1 if self.color == Color.WHITE else -1)
                 return
 
         print(0)
