@@ -42,32 +42,56 @@ class Board:
             top.neighbours.add(Coord(x, self.__boardsize))
         for x in range(2, self.__boardsize+1):
             dest = Coord(x, self.__boardsize-1)
-            top.twobridges[dest] = TwoBridge(
+            top.white_twobridges[dest] = TwoBridge(
                 Edges.TOP,
                 dest,
                 (Coord(x-1, self.__boardsize), Coord(x, self.__boardsize)),
+                Color.WHITE,
                 Status.TO_BE
+            )
+            top.black_twobridges[dest] = TwoBridge(
+                Edges.TOP,
+                dest,
+                (Coord(x-1, self.__boardsize), Coord(x, self.__boardsize)),
+                Color.BLACK,
+                Status.FAIL
             )
         bottom = Cell(Edges.BOTTOM, Color.WHITE, self.__boardsize)
         for x in range (1, self.__boardsize+1):
             bottom.neighbours.add(Coord(x, 1))
         for x in range (1, self.__boardsize):
             dest = Coord(x, 2)
-            bottom.twobridges[dest] = TwoBridge(
+            bottom.white_twobridges[dest] = TwoBridge(
                 Edges.BOTTOM,
                 dest,
                 (Coord(x, 1), Coord(x+1, 1)),
+                Color.WHITE,
                 Status.TO_BE
+            )
+            bottom.black_twobridges[dest] = TwoBridge(
+                Edges.BOTTOM,
+                dest,
+                (Coord(x, 1), Coord(x+1, 1)),
+                Color.BLACK,
+                Status.FAIL
             )
         left = Cell(Edges.LEFT, Color.BLACK, self.__boardsize)
         for y in range(1, self.__boardsize+1):
             left.neighbours.add(Coord(1, y))
         for y in range(1, self.__boardsize):
             dest = Coord(2, y)
-            left.twobridges[dest] = TwoBridge(
+            left.white_twobridges[dest] = TwoBridge(
                 Edges.LEFT,
                 dest,
                 (Coord(1, y), Coord(1, y+1)),
+                Color.WHITE,
+                Status.FAIL
+            )
+            left.black_twobridges[dest] = TwoBridge(
+                Edges.LEFT,
+                dest,
+                (Coord(1, y), Coord(1, y+1)),
+                Color.BLACK,
                 Status.TO_BE
             )
         right = Cell(Edges.RIGHT, Color.BLACK, self.__boardsize)
@@ -75,10 +99,18 @@ class Board:
             right.neighbours.add(Coord(self.__boardsize, y))
         for y in range (2, self.__boardsize+1):
             dest = Coord(self.__boardsize-1, y)
-            right.twobridges[dest] = TwoBridge(
+            right.white_twobridges[dest] = TwoBridge(
                 Edges.RIGHT,
                 dest,
                 (Coord(self.__boardsize, y-1), Coord(self.__boardsize, y)),
+                Color.WHITE,
+                Status.FAIL
+            )
+            right.black_twobridges[dest] = TwoBridge(
+                Edges.RIGHT,
+                dest,
+                (Coord(self.__boardsize, y-1), Coord(self.__boardsize, y)),
+                Color.BLACK,
                 Status.TO_BE
             )
 
