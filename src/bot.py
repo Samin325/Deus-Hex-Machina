@@ -1,6 +1,7 @@
 from multiprocessing.sharedctypes import Value
 from constants import Color
 from random import choice, seed
+from board import *
 
 seed(42)  # Get same results temporarily
 
@@ -71,13 +72,9 @@ class RandomHexBot:
         Args:
             board_size (int): The width & height of the hex game board to create
         """
-        board_size = int(board_size)
-        self.board_size = board_size
-        # TODO: create a Board class that can be searched more efficiently than a 2D array
-        self.board = [Color.EMPTY for _ in range(board_size**2)]
+        self.board_size = int(board_size)
+        self.board = Board(self.board_size)
         self.move_count = 0
-
-        self.init_neighbours()
 
     def show_board(self):
         """Prints the board to stdout. This is primarily used for
@@ -216,32 +213,6 @@ class RandomHexBot:
                 return
 
         print(0)
-        return
-
-    def init_neighbours(self):
-        """Precalculates all neighbours for each cell"""
-        self.neighbours = []
-
-        offsets_normal = [-1, 1, -self.board_size, self.board_size, -self.board_size+1, self.board_size-1]
-        offsets_left   = [    1, -self.board_size, self.board_size, -self.board_size+1                   ]
-        offsets_right  = [-1,    -self.board_size, self.board_size,                     self.board_size-1]
-
-        def legalize_offsets(cell, offsets):
-            a = []
-            for offset in offsets:
-                if 0 <= cell + offset < self.board_size**2:
-                    a.append(cell + offset)
-            return a
-
-        for cell in range(self.board_size**2):
-            if (cell+1) % self.board_size == 0:
-                offsets = offsets_right
-            elif cell % self.board_size == 0:
-                offsets = offsets_left
-            else:
-                offsets = offsets_normal
-
-            self.neighbours.append(legalize_offsets(cell, offsets))
         return
 
     def coord_to_move(self, coord):
