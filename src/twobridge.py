@@ -25,7 +25,7 @@ class TwoBridge:
         self.depends = depends
         self.status = status
 
-    def updateStatus(self, board: object) -> Status:
+    def update_status(self, board: object) -> Status:
         """ Update the status of this two-bridge based on the board state
 
         Parameters:

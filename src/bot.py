@@ -19,6 +19,7 @@ class RandomHexBot:
             "init_board": self.init_board,
             "show_board": self.show_board,
             "make_move": self.make_move,
+            "swap": self.swap,
             "seto": self.seto,
             "sety": self.sety,
             "unset": self.unset,
@@ -29,6 +30,7 @@ class RandomHexBot:
             "init_board": 1,
             "show_board": 0,
             "make_move": 0,
+            "swap": 0,
             "seto": 1,
             "sety": 1,
             "unset": 1,
@@ -128,7 +130,6 @@ class RandomHexBot:
         Args:
             move (str): A human-readable position on which the opponent has just played
         """
-        # TODO: Handle swap move. Logic moved to move_to_coord()
         coord = self.move_to_coord(move)
         if self.board[coord] == Color.EMPTY:
             # TODO: Warn or not?

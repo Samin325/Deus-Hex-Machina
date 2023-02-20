@@ -20,7 +20,7 @@ class Status(Enum):
 
 
 class Edges:
-    LEFT = Coord(0, 0.5)
-    RIGHT = Coord(999, 0.5)
-    BOTTOM = Coord(0.5, 0)
-    TOP = Coord(0.5, 999)
+    LEFT = Coord(0, -1)
+    RIGHT = Coord(999, -1)
+    BOTTOM = Coord(-1, 0)
+    TOP = Coord(-1, 999)
