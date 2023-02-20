@@ -11,12 +11,12 @@ class Color(Enum):
 
 
 class Status(Enum):
-    READY = 0       # origin empty
-    HALFWAY = 0.5   # origin+depend friendly, dest not hostile
-    TO_BE = 1       # origin friendly,  depends+dest empty
-    SUCCESS = 2     # origin+dest friendly, depends empty
-    FAIL = -1       # dest hostile / depends both hostile / dest empty+depend hostile
-    JEOPARDY = 4    # origin+dest friendly, 1depend hostile
+    FAIL = -1       # dest/orig hostile / deps both hostile / orig/dest empty, dep hostile
+    HALFWAY = 0.5   # dest+orig not hostile, any deps friendly
+    READY = 0       # everything empty
+    TO_BE = 1       # orig friendly, deps+dest empty / dest friendly, deps+orig empty
+    SUCCESS = 2     # orig+dest friendly, deps empty
+    JEOPARDY = 4    # orig+dest friendly, 1dep hostile
 
 
 class Edges:
