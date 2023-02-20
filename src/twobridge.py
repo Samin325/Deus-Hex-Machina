@@ -36,11 +36,11 @@ class TwoBridge:
         """
         EMPTY = Color.EMPTY
         FRIENDLY = board.cells[self.origin].color
-        HOSTILE = -1 * FRIENDLY
+        HOSTILE = Color.BLACK if FRIENDLY == Color.WHITE else Color.WHITE
 
         ORIG_COLOR = FRIENDLY
         DEP_COLORS = [board.cells[self.depends[i]].color for i in range(2)]
-        DEST_COLOR = board.cells[self.origin].color
+        DEST_COLOR = board.cells[self.dest].color
 
         if ORIG_COLOR == EMPTY:
             self.status = Status.READY
