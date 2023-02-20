@@ -11,24 +11,27 @@ class Cell:
             color: Color,
             boardsize: int
             ) -> None:
-        """ Create a cell object 
+        """ Create a Cell object 
 
         Parameters: 
-            coord (Coord)    - coordinates of this cell
-            color (Color)    - colour/whether this cell is empty
-            boardsize (int)  - size of the square board
+            coord: (Coord) coordinates of this cell
+            color: (Color) colour/whether this cell is empty
+            boardsize: (int) size of the square board
         """
         self.coord = coord
         self.color = color
         self.neighbours = set()
         self.twobridges = dict()
         self.__boardsize = boardsize
-        self.populate_neighbours()
-        self.populate_twobridges()
+        self.__populate_neighbours()
+        self.__populate_twobridges()
 
-    def populate_neighbours(self) -> None:
-        """ Calculates neighbours and populates list of neighbours of this cell """
-        # if there is a 0.5 in either of the coords, then its a special edge piece, so skip
+    def __populate_neighbours(self) -> None:
+        """ Calculates the direct neighbours of this cell
+
+        Not be used anywhere except during initialization
+        """
+        # if there is a -1 in either of the coords, then its a special edge piece, so skip
         if (self.coord.getx() == -1 or self.coord.gety() == -1):
             return
 
@@ -70,13 +73,16 @@ class Cell:
             self.neighbours.add(Edges.BOTTOM)
 
 
-    def populate_twobridges(self) -> None:
-        """ Calculates which positions this cell could be strong connected to """
-        # if there is a 0.5 in either of the coords, then its a special edge piece, so skip
+    def __populate_twobridges(self) -> None:
+        """ Calculates which positions this cell could be strong connected to
+
+        Not to be used anywhere except during initialization
+        """
+        # if there is a -1 in either of the coords, then its a special edge piece, so skip
         if (self.coord.getx() == -1 or self.coord.gety() == -1):
             return
 
-        # twobridges is indexed by coords of the desitination, represented as dest
+        # twobridges is indexed by coords of the destination, represented as dest
         # the two cells in the middle of the twobridge is represented as deps
 
         # two bridge top only exists if origin isn't in top two rows and not in first column

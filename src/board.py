@@ -18,13 +18,16 @@ class Board:
         self.blacks = dict()
         self.whites = dict()
         self.empties = dict()
-        self.create_all_cells()
+        self.__create_all_cells()
 
     def getsize(self) -> int:
         return self.__boardsize
 
-    def create_all_cells(self) -> None:
-        """ Creates a Cell object for every coord on the board"""
+    def __create_all_cells(self) -> None:
+        """ Creates a Cell object for every coord on the board
+
+        Not to be used anywhere except during initialization
+        """
         # create all the standard cells
         for i in range(1, self.__boardsize+1):
             for j in range(1, self.__boardsize+1):
@@ -94,12 +97,11 @@ class Board:
         """ Run Bi-BFS algorithm to find path between start and goal state
 
         Arguments:
-        si (Coord): initial state
-        sg (Coord): goal state
-        self: map in which the states exist
+            si: (Coord) initial state
+            sg: (Coord) goal state
 
-        Returns:
-        (bool) true if game has been won by this side, false if not
+        Returns: (bool)
+            True if path exists between si and sg, False if not
         """
         # initialize the forward open and closed (set) lists twith starting state
         color = self.cells[si].color
@@ -165,13 +167,13 @@ class Board:
 
 
     def check_win(self, movecount: int) -> Color:
-        """Check whether or not the game has come to a close
+        """ Check whether or not the game has come to a close
 
         Parameters:
-            movecount (int) - number of moves that have been played
+            movecount: (int) number of moves that have been played
 
-        Returns:
-            Color: color of the winning player, or empty for no winner
+        Returns: (Color)
+            color of the winning player, or empty for no winner
         """
         #  game cannot have been won if less than '19' moves have been made
         if (movecount < self.__boardsize*2-1):
@@ -187,8 +189,9 @@ class Board:
 
 
     def display(self) -> None:
-        """Prints the board to stdout. This is primarily used for
-        testing purposes & when playing against a human opponent
+        """ Prints the board to stdout
+
+        Primarily used for testing & when playing against a human opponent
         """
         tile_chars = {
             Color.EMPTY: ".",
