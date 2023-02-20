@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+# main.py
+
 """
-This is an example of a script used to interact with the Hex bot.
+This is the driver code used to interact with the Hex bot.
 """
-import sys
-from bot import RandomHexBot
+from bot import HexBot
 from constants import Color
 import argparse
 
@@ -14,7 +15,7 @@ def main():
     args = parser.parse_args()
 
     color = Color.WHITE if args.color == "white" else Color.BLACK
-    bot = RandomHexBot(color)
+    bot = HexBot(color)
 
     help_items = [
         ["Command", "Example", "Description"],

@@ -1,15 +1,24 @@
-from multiprocessing.sharedctypes import Value
-from constants import Color
+# bot.py
+
 from random import choice, seed
+from constants import Color
+from coord import Coord
+from board import Board
 
 seed(42)  # Get same results temporarily
 
-# Note: WHITE goes left->right, BLACK goes top->bottom
-# seems like the obtuse corner is bottom-left
-# numbers run across the top, letters run downwards
+# Note: BLACK goes left->right, WHITE goes top->bottom in our orientation
+# the acute corner is bottom-left
+# numbers run across the upwards, letters run rightwards (like a chessboard)
 
-class RandomHexBot:
-    def __init__(self, color, board_size=10):
+class HexBot:
+    def __init__(self, color: Color, board_size: int = 10) -> None:
+        """ Create a HexBot object
+
+        Parameters:
+            color: (Color) what colour tiles this bot is playing
+            board_size: (int) gameboard dimensions (default 10)
+        """
         self.color = color
         self.opp = Color.BLACK if color == Color.WHITE else Color.WHITE
         self.move_count = 0
@@ -37,260 +46,131 @@ class RandomHexBot:
             "check_win": 0,
         }
 
-    def is_cmd(self, cmd):
-        """Checks to see whether the command in 'cmd' conforms to the expected format
+    def is_cmd(self, cmd: list) -> bool:
+        """ Checks to see whether the command in 'cmd' conforms to the expected format
 
-        Args:
-            cmd (List[str]): A space-separated list of the commands given on the command line
+        Parameters:
+            cmd: (list[str]) A space-separated list of the commands given on the command line
 
-        Returns:
-            bool: True if the command exists and has the correct # of arguments, False otherwise
+        Returns: (bool)
+            True if the command exists and has the correct # of arguments, False otherwise
         """
         assert len(cmd)
         if cmd[0] not in self.pub:
             return False
         if len(cmd) - 1 != self.argnums[cmd[0]]:
             return False
-
         return True
 
-    def run_command(self, cmd):
-        """Executes the command contained within 'cmd' if it is applicable
+    def run_command(self, cmd: list) -> None:
+        """ Executes the command contained within 'cmd' if it is applicable
 
-        Args:
-            cmd (List[str]): A space-separated list of the commands given on the command line
+        Parameters:
+            cmd (list[str]): A space-separated list of the commands given on the command line
         """
         if len(cmd) > 1:
             self.pub[cmd[0]](cmd[1])
         else:
             self.pub[cmd[0]]()
 
-    def init_board(self, board_size):
-        """Tells the bot to reset the game to an empty board with a specified side length
+    def init_board(self, board_size: int) -> None:
+        """ Tells the bot to reset the game to an empty board with a specified side length
 
-        Args:
-            board_size (int): The width & height of the hex game board to create
+        Parameters:
+            board_size: (int) The width & height of the hex game board to create
         """
-        board_size = int(board_size)
-        self.board_size = board_size
-        # TODO: create a Board class that can be searched more efficiently than a 2D array
-        self.board = [Color.EMPTY for _ in range(board_size**2)]
+        self.board_size = int(board_size)
+        self.board = Board(self.board_size)
         self.move_count = 0
 
-        self.init_neighbours()
+    def show_board(self) -> None:
+        """ Prints the board to stdout
 
-    def show_board(self):
-        """Prints the board to stdout. This is primarily used for
-        testing purposes & when playing against a human opponent
-
-        Returns:
-            bool: True if the command exists and ran successfully, False otherwise
+        Primarily used for testing & when playing against a human opponent
         """
-        tile_chars = {
-            Color.EMPTY: ".",
-            Color.BLACK: "B",
-            Color.WHITE: "W",
-        }
+        print("Playing as:", "black" if self.color == Color.BLACK else "white")
+        print("Move count:", self.move_count)
+        self.board.display()
 
-        chars = list(map(lambda x: tile_chars[x], self.board))
+    def make_move(self) -> None:
+        """ Generates a move, plays it for itself, and prints it to stdout
 
-        for i in reversed(range(1, self.board_size+1)):  # Reverse to avoid shifting indicies
-            chars.insert(i * self.board_size, "|")
-
-        print("".join(chars))
-        return
-
-    def make_move(self):
-        """Generates the move. For this bot, the move is randomly selected from all empty positions."""
+        For now, the move is randomly selected from all empty positions
+        """
         if self.move_count == 1:
+            self.swap()
             print("swap")
-            self.move_count += 1
             return
-
-        empties = []
-        for i, cell in enumerate(self.board):
-            if cell == Color.EMPTY:
-                empties.append(i)
-
-        move = self.coord_to_move(choice(empties))
-        self.sety(move)
+        move = choice(list(self.board.empties.keys()))
+        self.sety(str(move))
         print(move)
         return
 
-    def swap(self):
+    def swap(self) -> bool:
+        """ Performs the 'swap' move
+
+        Returns: (bool)
+            True if successful, False if swap move is illegal (not first move)
         """
-        Performs the 'swap' move
-        """
+        if self.move_count != 1:
+            return False
         self.opp, self.color = self.color, self.opp
         self.move_count += 1
-
-    def seto(self, move):
-        """Tells the bot about a move for the other bot
-
-        Args:
-            move (str): A human-readable position on which the opponent has just played
-        """
-        coord = self.move_to_coord(move)
-        if self.board[coord] == Color.EMPTY:
-            # TODO: Warn or not?
-            #print("Trying to play on a non-empty square!")
-            self.board[coord] = self.opp
-            self.move_count += 1
-        return
-
-    def sety(self, move):
-        """Set Your [tile]. Tells the bot to play a move for itself
-
-        Args:
-            move (str): A human-readable position on the board
-        """
-        coord = self.move_to_coord(move)
-        if self.board[coord] != Color.EMPTY:
-            #print("Trying to play on a non-empty square!")
-            return
-        self.board[coord] = self.color
-        self.move_count += 1
-        return
-
-    def unset(self, move):
-        """Tells the bot to set a tile as unused
-
-        Args:
-            move (str): A human-readable position on the board
-        Returns:
-            bool: True if the move has been unmade, False otherwise
-        """
-
-        coord = self.move_to_coord(move)
-        self.board[coord] = Color.EMPTY
         return True
 
-    def check_win(self):
-        """Checks whether or not the game has come to a close.
+    def seto(self, move: str) -> bool:
+        """ Tells the bot about a move for the other bot
 
-        Returns:
-            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise. Note that draws
-            are mathematically impossible in Hex.
+        Parameters:
+            move: (str) A human-readable position on which the opponent has just played
+
+        Returns: (bool)
+            True if successful, False if the tile was not empty
         """
-        seen = set()
-
-        def dfs(i, color, level=0):
-            """Oopsie poopsie! I made a fucky wucky! This code is super-duper slow! UwU7
-
-            Args:
-                i (int): The current location of the depth-first search
-                color (int): The current color of the dfs.
-            """
-            is_right_column = (i + 1) % self.board_size == 0
-            is_bottom_row = i >= self.board_size * (self.board_size - 1)
-
-            if color == Color.WHITE and is_right_column:
-                return True
-            elif color == Color.BLACK and is_bottom_row:
-                return True
-
-            # Label hexagon as 'visited' so we don't get infinite recusion
-            seen.add(i)
-            for neighbour in self.neighbours[i]:
-                if (
-                    neighbour not in seen
-                    and self.board[neighbour] == color
-                    and dfs(neighbour, color, level=level + 1)
-                ):
-                    return True
-
-            # Remove hexagon so we can examine it again next time (hint:is this needed?)
-            seen.remove(i)
+        # note: move must be of type str to conform with the driver code
+        coord = Coord(*Coord.str2cart(move))
+        if not self.board.set(coord, self.opp):
             return False
+        self.move_count += 1
+        return True
 
-        # Iterate over all starting spaces for black & white, performing dfs on empty
-        # spaces (hint: this leads to repeated computation!)
-        for i in range(0, self.board_size):
-            if self.board[i] == Color.BLACK and dfs(i, Color.BLACK):
-                print(1 if self.color == Color.BLACK else -1)
-                return
+    def sety(self, move: str) -> bool:
+        """ Set Your [tile]. Tells the bot to play a move for itself
 
-        for i in range(0, len(self.board), self.board_size):
-            if self.board[i] == Color.WHITE and dfs(i, Color.WHITE):
-                print(1 if self.color == Color.WHITE else -1)
-                return
+        Parameters:
+            move: (str) A human-readable position on the board
 
-        print(0)
-        return
-
-    def init_neighbours(self):
-        """Precalculates all neighbours for each cell"""
-        self.neighbours = []
-
-        offsets_normal = [-1, 1, -self.board_size, self.board_size, -self.board_size+1, self.board_size-1]
-        offsets_left   = [    1, -self.board_size, self.board_size, -self.board_size+1                   ]
-        offsets_right  = [-1,    -self.board_size, self.board_size,                     self.board_size-1]
-
-        def legalize_offsets(cell, offsets):
-            a = []
-            for offset in offsets:
-                if 0 <= cell + offset < self.board_size**2:
-                    a.append(cell + offset)
-            return a
-
-        for cell in range(self.board_size**2):
-            if (cell+1) % self.board_size == 0:
-                offsets = offsets_right
-            elif cell % self.board_size == 0:
-                offsets = offsets_left
-            else:
-                offsets = offsets_normal
-
-            self.neighbours.append(legalize_offsets(cell, offsets))
-        return
-
-    def coord_to_move(self, coord):
-        """Converts an integer coordinate to a human-readable move
-
-        Args:
-            coord (int): A coordinate within self.board
-
-        Returns:
-            str: A human-readable version of coord
-        Example:
-            >>> assert coord_to_move(0) == "a1"
-            >>> assert coord_to_move(self.board_size + 2) == "b3"
-            >>> assert coord_to_move(22 * self.board_size + 11) == "w12"
+        Returns: (bool)
+            True if successful, False if the tile was not empty
         """
-        letter = chr(coord // self.board_size + ord("a"))
-        number = coord % self.board_size + 1
+        coord = Coord(*Coord.str2cart(move))
+        if not self.board.set(coord, self.color):
+            return False
+        self.move_count += 1
+        return True
 
-        return f'{letter}{number}'
+    def unset(self, move: str) -> bool:
+        """ Tells the bot to set a tile as unused
 
-    def move_to_coord(self, move):
-        """Converts a human-readable move to a coordinate within self.board
+        Parameters:
+            move: (str) A human-readable position on the board
 
-        Args:
-            move (str): A human-readable position on the board
-
-        Returns:
-            int: The integer coordinate of 'move', used to interact with the board
-
-        Example:
-            >>> assert move_to_coord("a1") == 0
-            >>> assert move_to_coord("b3") == self.board_size + 2
-            >>> assert move_to_coord("w12") == 22 * self.board_size + 11
+        Returns: (bool)
+            True if the move has been unmade, False if the tile was alr empty
         """
-        # TODO: Handle swap move
-        if move == "swap":
-            self.swap_move()
-            return
+        coord = Coord(*Coord.str2cart(move))
+        return self.board.unset(coord)
 
-        assert len(move) >= 2, "Move must be a character-digit pair. Ex: a12"
-        assert move[0].isalpha(), "First character must be a letter. Ex: a12"
-        assert move[1:].isdigit(), "Digits must follow the first character. Ex: a12"
-        assert (
-            ord(move[0]) - ord("a") < self.board_size
-        ), "The letter in 'move' must have value less than board size!"
-        assert (
-            0 < int(move[1:]) <= self.board_size
-        ), "Integer part of move must be within range (0, board_size]!"
+    def check_win(self) -> None:
+        """ Checks whether or not the game has come to a close.
 
-        column = int(move[1:]) - 1
-        row = ord(move[0]) - ord("a")
-        return row * self.board_size + column
+        Prints 1 if we have won, -1 if opponent has, 0 otherwise
+        """
+        # if our color is the same as winning color, we win
+        winning_color = self.board.check_win(self.move_count)
+        if winning_color == Color.EMPTY:
+            print(0)
+        elif winning_color == self.color:
+            print(1)
+        else:
+            print(-1)
