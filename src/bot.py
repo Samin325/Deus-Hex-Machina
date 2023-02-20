@@ -127,13 +127,12 @@ class RandomHexBot:
         Args:
             move (str): A human-readable position on which the opponent has just played
         """
-        coord = self.move_to_coord(move)
-        if self.board[coord] == Color.EMPTY:
-            # TODO: Warn or not?
-            #print("Trying to play on a non-empty square!")
-            self.board[coord] = self.opp
-            self.move_count += 1
-        return
+        coord = Coord(*Coord.str2cart(move))
+        if not self.board.set(coord, self.opp):
+            # if set fails, return false
+            return False
+        self.move_count += 1
+        return True
 
     def sety(self, move):
         """Set Your [tile]. Tells the bot to play a move for itself
@@ -166,54 +165,17 @@ class RandomHexBot:
         """Checks whether or not the game has come to a close.
 
         Returns:
-            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise. Note that draws
-            are mathematically impossible in Hex.
+            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise.
         """
-        seen = set()
-
-        def dfs(i, color, level=0):
-            """Oopsie poopsie! I made a fucky wucky! This code is super-duper slow! UwU7
-
-            Args:
-                i (int): The current location of the depth-first search
-                color (int): The current color of the dfs.
-            """
-            is_right_column = (i + 1) % self.board_size == 0
-            is_bottom_row = i >= self.board_size * (self.board_size - 1)
-
-            if color == Color.WHITE and is_right_column:
-                return True
-            elif color == Color.BLACK and is_bottom_row:
-                return True
-
-            # Label hexagon as 'visited' so we don't get infinite recusion
-            seen.add(i)
-            for neighbour in self.neighbours[i]:
-                if (
-                    neighbour not in seen
-                    and self.board[neighbour] == color
-                    and dfs(neighbour, color, level=level + 1)
-                ):
-                    return True
-
-            # Remove hexagon so we can examine it again next time (hint:is this needed?)
-            seen.remove(i)
-            return False
-
-        # Iterate over all starting spaces for black & white, performing dfs on empty
-        # spaces (hint: this leads to repeated computation!)
-        for i in range(0, self.board_size):
-            if self.board[i] == Color.BLACK and dfs(i, Color.BLACK):
-                print(1 if self.color == Color.BLACK else -1)
-                return
-
-        for i in range(0, len(self.board), self.board_size):
-            if self.board[i] == Color.WHITE and dfs(i, Color.WHITE):
-                print(1 if self.color == Color.WHITE else -1)
-                return
-
-        print(0)
-        return
+        # 
+        winning_color = self.board.check_win(self.move_count)
+        if winning_color == Color.EMPTY:
+            return 0
+        elif winning_color == self.color:
+            return 1
+        else:
+            return -1 
+         
 
     def coord_to_move(self, coord):
         """Converts an integer coordinate to a human-readable move
