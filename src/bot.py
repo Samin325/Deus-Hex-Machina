@@ -1,7 +1,7 @@
 # bot.py
 
 from random import choice, seed
-from constants import Color
+from constants import Color, Edges
 from coord import Coord
 from board import Board
 from cell import Cell
@@ -98,10 +98,8 @@ class HexBot:
 
         For now, the move is randomly selected from all empty positions
         """
-        if self.move_count == 1:
-            self.swap()
-            print("swap")
-            return
+        # if self.move_count < 4:
+            # move = self.early_move()
         move = choice(list(self.board.empties.keys()))
         self.sety(str(move))
         print(move)
@@ -212,13 +210,45 @@ class HexBot:
             print(-1)
 
 
-    def early_move(self) -> Coord:
+    def early_move(self) -> str:
         """ Determine what move to make if it is early game
 
-        Returns:
-            (coord): position of where to make move
+        Returns: (str)
+            Human-readable coordinate on which we decide to make our move
         """
-        pass
+        if self.move_count == 0:
+            return "b2"
+        if self.move_count == 1:
+            if self.color == Color.WHITE:
+                for coord in self.board.blacks:
+                    if coord not in (Edges.LEFT, Edges.RIGHT):
+                        first_move = coord
+                if first_move.getx() == 1 or first_move.getx() == 10:
+                    if first_move in (Coord(1, 10), Coord(10, 1)):
+                        return "swap"
+                else:
+                    if first_move not in (Coord(2, 1), Coord(2, 2), Coord(9, 9), Coord(9, 10)):
+                        return "swap"
+                return "e6"  # didn't swap
+            else:
+                for coord in self.board.whites:
+                    if coord not in (Edges.TOP, Edges.BOTTOM):
+                        first_move = coord
+                if first_move.gety() == 1 or first_move.gety() == 10:
+                    if first_move in (Coord(10, 1), Coord(1, 10)):
+                        return "swap"
+                else:
+                    if first_move not in (Coord(1, 2), Coord(2, 2), Coord(9, 9), Coord(10, 9)):
+                        return "swap"
+                return "f5"  # didn't swap
+        if self.move_count == 2:
+            if len(self.board.blacks) == 3 and len(self.board.whites) == 3:
+                # swap move DID NOT occur. fight for control
+                # TODO: figure out how to contest/block in early game
+                return "BRUH"
+            else:
+                # swap move occurred. claim centre
+                return "e6" if self.color == Color.WHITE else "f5"
 
     def late_move(self) -> Coord:
         """ Determine what move to make if several pieces are already on the board
