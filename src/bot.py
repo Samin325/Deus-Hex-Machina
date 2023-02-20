@@ -1,7 +1,8 @@
 from multiprocessing.sharedctypes import Value
-from constants import Color
 from random import choice, seed
-from board import *
+from constants import Color
+from coord import Coord
+from board import Board
 
 seed(42)  # Get same results temporarily
 
@@ -80,10 +81,8 @@ class RandomHexBot:
         """Prints the board to stdout. This is primarily used for
         testing purposes & when playing against a human opponent
         """
-        if self.color == Color.BLACK:
-            print("Playing as black")
-        else:
-            print("Playing as white")
+        print("Playing as:", "black" if self.color == Color.BLACK else "white")
+        print("Move count:", self.move_count)
         self.board.display()
 
     def make_move(self):
@@ -99,9 +98,11 @@ class RandomHexBot:
 
     def swap(self):
         """ Performs the 'swap' move """
+        if self.move_count != 1:
+            return False
         self.opp, self.color = self.color, self.opp
         self.move_count += 1
-        return
+        return True
 
     def seto(self, move):
         """Tells the bot about a move for the other bot
@@ -142,14 +143,13 @@ class RandomHexBot:
     def check_win(self):
         """Checks whether or not the game has come to a close.
 
-        Returns:
-            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise.
+        Prints 1 if we have won, -1 if opponent has, 0 otherwise
         """
         # if our color is the same as winning color, we win
         winning_color = self.board.check_win(self.move_count)
         if winning_color == Color.EMPTY:
-            return 0
+            print(0)
         elif winning_color == self.color:
-            return 1
+            print(1)
         else:
-            return -1 
+            print(-1)
