@@ -106,16 +106,39 @@ class HexBot:
         print(move)
         return
 
-    def swap(self) -> bool:
-        """ Performs the 'swap' move
+    def update_twobridges(self, coord: Coord) -> None:
+        """ Update the TwoBridge statuses of nearby cells after a move
+
+        Parameters:
+            coord: (Coord) the coordinate of the cell that was just played on
+        """
+        # update TwoBridge statuses of this cell and its reciprocal twobridges
+        for dest in self.board.cells[coord].twobridges:
+            # TODO: record the new status and act on it if in jeopardy
+            self.board.cells[coord].twobridges[dest].update_status(self.board)
+            self.board.cells[dest].twobridges[coord].update_status(self.board)
+
+        # update the relevant TwoBridge statuses of this cell's neighbours
+        for neighbour in self.board.cells[coord].neighbours:
+            for n_dest in self.board.cells[neighbour].twobridges:
+                if coord not in self.board.cells[neighbour].twobridges[n_dest].depends:
+                    continue
+                self.board.cells[neighbour].twobridges[n_dest].update_status(self.board)
+
+    def set_piece(self, coord: Coord, color: Color) -> bool:
+        """ Set a piece on an empty cell of our gameboard
+
+        Parameters:
+            coord: (Coord) coordinate to place the piece on
+            color: (Color) what colour piece to place
 
         Returns: (bool)
-            True if successful, False if swap move is illegal (not first move)
+            True if successful, False if the cell was not empty
         """
-        if self.move_count != 1:
+        if not self.board.set(coord, color):
             return False
-        self.opp, self.color = self.color, self.opp
         self.move_count += 1
+        self.update_twobridges(coord)
         return True
 
     def seto(self, move: str) -> bool:
@@ -129,10 +152,7 @@ class HexBot:
         """
         # note: move must be of type str to conform with the driver code
         coord = Coord(*Coord.str2cart(move))
-        if not self.board.set(coord, self.opp):
-            return False
-        self.move_count += 1
-        return True
+        return self.set_piece(coord, self.opp)
 
     def sety(self, move: str) -> bool:
         """ Set Your [tile]. Tells the bot to play a move for itself
@@ -144,8 +164,17 @@ class HexBot:
             True if successful, False if the tile was not empty
         """
         coord = Coord(*Coord.str2cart(move))
-        if not self.board.set(coord, self.color):
+        return self.set_piece(coord, self.color)
+
+    def swap(self) -> bool:
+        """ Performs the 'swap' move
+
+        Returns: (bool)
+            True if successful, False if swap move is illegal (not first move)
+        """
+        if self.move_count != 1:
             return False
+        self.opp, self.color = self.color, self.opp
         self.move_count += 1
         return True
 
@@ -159,7 +188,10 @@ class HexBot:
             True if the move has been unmade, False if the tile was alr empty
         """
         coord = Coord(*Coord.str2cart(move))
-        return self.board.unset(coord)
+        if not self.board.unset(coord):
+            return False
+        self.update_twobridges(coord)
+        return True
 
     def check_win(self) -> None:
         """ Checks whether or not the game has come to a close.
