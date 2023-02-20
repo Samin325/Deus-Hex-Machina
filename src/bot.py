@@ -113,17 +113,20 @@ class HexBot:
             coord: (Coord) the coordinate of the cell that was just played on
         """
         # update TwoBridge statuses of this cell and its reciprocal twobridges
-        for dest in self.board.cells[coord].twobridges:
+        for dest in self.board.cells[coord].white_twobridges:
             # TODO: record the new status and act on it if in jeopardy
-            self.board.cells[coord].twobridges[dest].update_status(self.board)
-            self.board.cells[dest].twobridges[coord].update_status(self.board)
+            self.board.cells[coord].white_twobridges[dest].update_status(self.board)
+            self.board.cells[coord].black_twobridges[dest].update_status(self.board)
+            self.board.cells[dest].white_twobridges[coord].update_status(self.board)
+            self.board.cells[dest].black_twobridges[coord].update_status(self.board)
 
         # update the relevant TwoBridge statuses of this cell's neighbours
         for neighbour in self.board.cells[coord].neighbours:
-            for n_dest in self.board.cells[neighbour].twobridges:
-                if coord not in self.board.cells[neighbour].twobridges[n_dest].depends:
+            for n_dest in self.board.cells[neighbour].white_twobridges:
+                if coord not in self.board.cells[neighbour].white_twobridges[n_dest].depends:
                     continue
-                self.board.cells[neighbour].twobridges[n_dest].update_status(self.board)
+                self.board.cells[neighbour].white_twobridges[n_dest].update_status(self.board)
+                self.board.cells[neighbour].black_twobridges[n_dest].update_status(self.board)
 
     def set_piece(self, coord: Coord, color: Color) -> bool:
         """ Set a piece on an empty cell of our gameboard

@@ -10,6 +10,7 @@ class TwoBridge:
             origin: Coord,
             dest: Coord,
             depends: tuple,
+            color: Color,
             status: Status
             ) -> None:
         """ Create a TwoBridge object
@@ -18,11 +19,13 @@ class TwoBridge:
             origin: (Coord) coordinate of originating cell
             dest: (Coord) coordinate of this cell (the two-bridge)
             depends: (tuple[Coord, Coord]) coordinates of dependency cells
+            color: (Color) which player this 2bridge is relevant for
             status: (Status) status of this cell's two-bridgedness
         """
         self.origin = origin
         self.dest = dest
         self.depends = depends
+        self.color = color
         self.status = status
 
     def update_status(self, board: object) -> Status:
@@ -35,30 +38,35 @@ class TwoBridge:
             new status, after updating internally
         """
         EMPTY = Color.EMPTY
-        FRIENDLY = board.cells[self.origin].color
+        FRIENDLY = self.color
         HOSTILE = Color.BLACK if FRIENDLY == Color.WHITE else Color.WHITE
 
-        ORIG_COLOR = FRIENDLY
+        ORIG_COLOR = board.cells[self.origin].color
         DEP_COLORS = [board.cells[self.depends[i]].color for i in range(2)]
         DEST_COLOR = board.cells[self.dest].color
 
-        if ORIG_COLOR == EMPTY:
-            self.status = Status.READY
-
-        elif DEST_COLOR != HOSTILE and any([DEP_COLORS[i] == FRIENDLY for i in range(2)]):
-            self.status = Status.HALFWAY
-
-        elif DEST_COLOR == EMPTY and all([DEP_COLORS[i] == EMPTY for i in range(2)]):
-            self.status = Status.TO_BE
-
-        elif DEST_COLOR == FRIENDLY and all([DEP_COLORS[i] == EMPTY for i in range(2)]):
-            self.status = Status.SUCCESS
-
-        elif DEST_COLOR == HOSTILE or all([DEP_COLORS[i] == HOSTILE for i in range(2)]) or \
-                (DEST_COLOR == EMPTY and any([DEP_COLORS[i] == HOSTILE for i in range(2)])):
+        if DEST_COLOR == HOSTILE or ORIG_COLOR == HOSTILE or \
+                all([DEP_COLORS[i] == HOSTILE for i in range(2)]) or \
+                ((ORIG_COLOR == EMPTY or DEST_COLOR == EMPTY) and \
+                    any([DEP_COLORS[i] == HOSTILE for i in range(2)])):
             self.status = Status.FAIL
 
-        elif DEST_COLOR == FRIENDLY and any([DEP_COLORS[i] == HOSTILE for i in range(2)]):
+        elif any([DEP_COLORS[i] == FRIENDLY for i in range(2)]):
+            self.status = Status.HALFWAY
+
+        elif ORIG_COLOR == EMPTY and DEST_COLOR == EMPTY and \
+                all([DEP_COLORS[i] == EMPTY for i in range(2)]):
+            self.status = Status.READY
+
+        elif (ORIG_COLOR == EMPTY or DEST_COLOR == EMPTY) and all([DEP_COLORS[i] == EMPTY for i in range(2)]):
+            self.status = Status.TO_BE
+
+        elif ORIG_COLOR == FRIENDLY and DEST_COLOR == FRIENDLY and \
+                all([DEP_COLORS[i] == EMPTY for i in range(2)]):
+            self.status = Status.SUCCESS
+
+        elif ORIG_COLOR == FRIENDLY and DEST_COLOR == FRIENDLY and \
+                any([DEP_COLORS[i] == HOSTILE for i in range(2)]):
             self.status = Status.JEOPARDY
 
         return self.status

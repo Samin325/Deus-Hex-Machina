@@ -21,7 +21,8 @@ class Cell:
         self.coord = coord
         self.color = color
         self.neighbours = set()
-        self.twobridges = dict()
+        self.white_twobridges = dict()
+        self.black_twobridges = dict()
         self.__boardsize = boardsize
         self.__populate_neighbours()
         self.__populate_twobridges()
@@ -89,50 +90,60 @@ class Cell:
         if (self.coord.gety()<self.__boardsize-1 and self.coord.getx()>1):
             dest = Coord(self.coord.getx()-1,self.coord.gety()+2)
             deps = (Coord(self.coord.getx()-1,self.coord.gety()+1), Coord(self.coord.getx(),self.coord.gety()+1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
         elif (self.coord.gety()==self.__boardsize-1 and self.coord.getx()>1):
             dest = Edges.TOP
             deps = (Coord(self.coord.getx()-1,self.coord.gety()+1), Coord(self.coord.getx(),self.coord.gety()+1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.TO_BE)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.FAIL)
 
         # two bridge bottom only exists if origin isn't in bottom two rows and not in last column
         if (self.coord.gety()>2 and self.coord.getx()<self.__boardsize):
             dest = Coord(self.coord.getx()+1,self.coord.gety()-2)
             deps = (Coord(self.coord.getx(),self.coord.gety()-1), Coord(self.coord.getx()+1,self.coord.gety()-1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
         elif (self.coord.gety()==2 and self.coord.getx()<self.__boardsize):
             dest = Edges.BOTTOM
             deps = (Coord(self.coord.getx(),self.coord.gety()-1), Coord(self.coord.getx()+1,self.coord.gety()-1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.TO_BE)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.FAIL)
 
         # two bridge upper left only exists if not in first two columns and not in top row
         if (self.coord.gety()<self.__boardsize and self.coord.getx()>2):
             dest = Coord(self.coord.getx()-2,self.coord.gety()+1)
             deps = (Coord(self.coord.getx()-1,self.coord.gety()), Coord(self.coord.getx()-1,self.coord.gety()+1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
         elif (self.coord.gety()<self.__boardsize and self.coord.getx()==2):
             dest = Edges.LEFT
             deps = (Coord(self.coord.getx()-1,self.coord.gety()), Coord(self.coord.getx()-1,self.coord.gety()+1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.FAIL)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.TO_BE)
 
         # two bridge lower right only exists if not in last two columns and not in bottom row
         if (self.coord.gety()>1  and self.coord.getx()<self.__boardsize-1):
             dest = Coord(self.coord.getx()+2,self.coord.gety()-1)
             deps = (Coord(self.coord.getx()+1,self.coord.gety()), Coord(self.coord.getx()+1,self.coord.gety()-1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
         elif (self.coord.gety()>1  and self.coord.getx()==self.__boardsize-1):
             dest = Edges.RIGHT
             deps = (Coord(self.coord.getx()+1,self.coord.gety()), Coord(self.coord.getx()+1,self.coord.gety()-1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.FAIL)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.TO_BE)
 
         # two bridge lower left only exists if not in first column and not in bottom row
         if (self.coord.gety()>1 and self.coord.getx()>1):
             dest = Coord(self.coord.getx()-1,self.coord.gety()-1)
             deps = (Coord(self.coord.getx()-1,self.coord.gety()), Coord(self.coord.getx(),self.coord.gety()-1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
 
         # two bridge upper right only exists if not in last column and not in top row
         if (self.coord.gety()<self.__boardsize and self.coord.getx()<self.__boardsize):
             dest = Coord(self.coord.getx()+1,self.coord.gety()+1)
             deps = (Coord(self.coord.getx()+1,self.coord.gety()), Coord(self.coord.getx(),self.coord.gety()+1))
-            self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+            self.white_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.WHITE, Status.READY)
+            self.black_twobridges[dest] = TwoBridge(self.coord, dest, deps, Color.BLACK, Status.READY)
