@@ -164,29 +164,26 @@ class Board:
         return False
 
 
-    def check_win(self, movecount: int, your_color: Color) -> int:
+    def check_win(self, movecount: int) -> Color:
         """Check whether or not the game has come to a close
 
         Parameters:
             movecount (int) - number of moves that have been played
-            your_color (Color) - the color that we are playing as
 
         Returns:
-            int: 1 if this bot has won, -1 if the opponent has won, and 0 otherwise.
+            Color: color of the winning player, or empty for no winner
         """
         #  game cannot have been won if less than '19' moves have been made
         if (movecount < self.__boardsize*2-1):
-            return 0
-
-        winner = 0
+            return Color.EMPTY
         # check if white has won
         if self.bi_bfs(Edges.TOP, Edges.BOTTOM):
-            winner = 1
+            return Color.WHITE
         # check if black has won
         elif self.bi_bfs(Edges.LEFT, Edges.RIGHT):
-            winner = -1
-        # return the state of the game
-        return winner * (1 if your_color == Color.WHITE else -1)
+            return Color.BLACK
+        # return no one has won
+        return Color.EMPTY
 
 
     def display(self) -> None:
@@ -232,28 +229,6 @@ class Board:
         else:
             return False  # attempted to set a cell to empty. use unset()
         return True
-
-    def swap(self) -> bool:
-        """ Perform the 'swap' move
-
-        Returns: (bool)
-            True if successful, False if swap move impermissible
-        """
-        ## MAY NEED TO REMOVE ENTIRELY. BOT SWAPS PLAYERS INSTEAD OF TILES
-        if len(self.blacks) != 3 and len(self.whites) != 3:
-            return False
-        if len(self.blacks) == 3:
-            for coord in self.blacks:
-                if coord not in [Edges.LEFT, Edges.RIGHT]:
-                    self.unset(coord)
-                    self.set(coord, Color.WHITE)
-                    break
-        else:
-            for coord in self.whites:
-                if coord not in [Edges.TOP, Edges.BOTTOM]:
-                    self.unset(coord)
-                    self.set(coord, Color.BLACK)
-                    break
 
     def unset(self, coord: Coord) -> bool:
         """ Remove a piece from the board
