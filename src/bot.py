@@ -4,6 +4,7 @@ from random import choice, seed
 from constants import Color
 from coord import Coord
 from board import Board
+from cell import Cell
 
 seed(42)  # Get same results temporarily
 
@@ -206,3 +207,33 @@ class HexBot:
             print(1)
         else:
             print(-1)
+
+
+    def early_move(self) -> Coord:
+        """ Determine what move to make if it is early game
+
+        Returns:
+            (coord): position of where to make move
+        """
+        pass
+
+    def late_move(self) -> Coord:
+        """ Determine what move to make if several pieces are already on the board
+
+        Returns:
+            (coord): position of where to make move
+        """
+        pass
+
+    def dijkstra(self, start: Cell, goal: Cell, player: Color) -> list:
+        """ Returns an optimal path between start and goal
+
+        Parameters:
+            start (Cell): state from where to start search from
+            goal (Cell): state we are trying to reach from start
+            player (Color): the player that this search is done on behalf of
+
+        Returns:
+            (list[Coord]): a list that contains the coords in order that form an optimal path from start to goal
+        """
+        pass

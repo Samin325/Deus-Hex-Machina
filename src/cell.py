@@ -23,6 +23,9 @@ class Cell:
         self.neighbours = set()
         self.twobridges = dict()
         self.__boardsize = boardsize
+        self.g = 0
+        self.black_parent = self.coord
+        self.white_parent = self.coord
         self.__populate_neighbours()
         self.__populate_twobridges()
 
@@ -136,3 +139,9 @@ class Cell:
             dest = Coord(self.coord.getx()+1,self.coord.gety()+1)
             deps = (Coord(self.coord.getx()+1,self.coord.gety()), Coord(self.coord.getx(),self.coord.gety()+1))
             self.twobridges[dest] = TwoBridge(self.coord, dest, deps, Status.READY)
+
+    def __lt__(self, other: object) -> bool:
+        return self.g < other.g
+
+    def __hash__(self) -> int:
+        return hash(self.coord)
