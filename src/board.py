@@ -36,7 +36,7 @@ class Board:
         # create the edge cells
         top = Cell(Edges.TOP, Color.WHITE, self.__boardsize)
         for x in range(1, self.__boardsize+1):
-            top.neighbours.append(Coord(x, self.__boardsize))
+            top.neighbours.add(Coord(x, self.__boardsize))
         for x in range(2, self.__boardsize+1):
             dest = Coord(x, self.__boardsize-1)
             top.twobridges[dest] = TwoBridge(
@@ -47,7 +47,7 @@ class Board:
             )
         bottom = Cell(Edges.BOTTOM, Color.WHITE, self.__boardsize)
         for x in range (1, self.__boardsize+1):
-            bottom.neighbours.append(Coord(x, 1))
+            bottom.neighbours.add(Coord(x, 1))
         for x in range (1, self.__boardsize):
             dest = Coord(x, 2)
             bottom.twobridges[dest] = TwoBridge(
@@ -58,7 +58,7 @@ class Board:
             )
         left = Cell(Edges.LEFT, Color.BLACK, self.__boardsize)
         for y in range(1, self.__boardsize+1):
-            left.neighbours.append(Coord(1, y))
+            left.neighbours.add(Coord(1, y))
         for y in range(1, self.__boardsize):
             dest = Coord(2, y)
             left.twobridges[dest] = TwoBridge(
@@ -69,7 +69,7 @@ class Board:
             )
         right = Cell(Edges.RIGHT, Color.BLACK, self.__boardsize)
         for y in range (1, self.__boardsize+1):
-            right.neighbours.append(Coord(self.__boardsize, y))
+            right.neighbours.add(Coord(self.__boardsize, y))
         for y in range (2, self.__boardsize+1):
             dest = Coord(self.__boardsize-1, y)
             right.twobridges[dest] = TwoBridge(

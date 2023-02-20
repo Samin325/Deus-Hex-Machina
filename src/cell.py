@@ -20,7 +20,7 @@ class Cell:
         """
         self.coord = coord
         self.color = color
-        self.neighbours = []
+        self.neighbours = set()
         self.twobridges = dict()
         self.__boardsize = boardsize
         self.populate_neighbours()
@@ -34,40 +34,40 @@ class Cell:
 
         # neighbour to top left exists only if cell is not on top row and not first column
         if (self.coord.gety()<self.__boardsize and self.coord.getx()>1):
-            self.neighbours.append(Coord(self.coord.getx()-1,self.coord.gety()+1))
+            self.neighbours.add(Coord(self.coord.getx()-1,self.coord.gety()+1))
 
         # neighbour to top right exists only if cell is not on top row
         if (self.coord.gety()<self.__boardsize):
-            self.neighbours.append(Coord(self.coord.getx(),self.coord.gety()+1))
+            self.neighbours.add(Coord(self.coord.getx(),self.coord.gety()+1))
 
         # neighbour to left exists only if cell is not on first column
         if (self.coord.getx()>1):
-            self.neighbours.append(Coord(self.coord.getx()-1,self.coord.gety()))
+            self.neighbours.add(Coord(self.coord.getx()-1,self.coord.gety()))
 
         # neighbour to right exists only if cell is not on last column
         if (self.coord.getx()<self.__boardsize):
-            self.neighbours.append(Coord(self.coord.getx()+1,self.coord.gety()))
+            self.neighbours.add(Coord(self.coord.getx()+1,self.coord.gety()))
 
         # neighbour to bottom left exists only if cell is not on bottom row
         if (self.coord.gety()>1):
-            self.neighbours.append(Coord(self.coord.getx(),self.coord.gety()-1))
+            self.neighbours.add(Coord(self.coord.getx(),self.coord.gety()-1))
 
         # neighbour to bottom right exists only if cell is not on bottom row and not on last column
         if (self.coord.gety()>1 and self.coord.getx()<self.__boardsize):
-            self.neighbours.append(Coord(self.coord.getx()+1,self.coord.gety()-1))
+            self.neighbours.add(Coord(self.coord.getx()+1,self.coord.gety()-1))
 
         # check to see if the cell is on any edge; if so, make a neighbour of it a special edge cell
         if (self.coord.getx()==1):
-            self.neighbours.append(Edges.LEFT)
+            self.neighbours.add(Edges.LEFT)
 
         if (self.coord.getx()==self.__boardsize):
-            self.neighbours.append(Edges.RIGHT)
+            self.neighbours.add(Edges.RIGHT)
 
         if (self.coord.gety()==self.__boardsize):
-            self.neighbours.append(Edges.TOP)
+            self.neighbours.add(Edges.TOP)
 
         if (self.coord.gety()==1):
-            self.neighbours.append(Edges.BOTTOM)
+            self.neighbours.add(Edges.BOTTOM)
 
 
     def populate_twobridges(self) -> None:
