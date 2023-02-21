@@ -526,7 +526,9 @@ class HexBot:
                             if playerMoves[i][0] == oppMoves[j][0]:
                                 # the following addition statement may be changed to account for differences in g-values
                                 # (diff in g-value will represent how bad of a defensive move we need to play)
-                                playerMoves[i][1] == playerMoves[i][1] + oppMoves[j][1]
+                                temp = list (playerMoves[i])
+                                temp[1] = playerMoves[i][1] + 1.5*oppMoves[j][1]
+                                playerMoves[i] = tuple(temp)
                                 break
                         break
         
