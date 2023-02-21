@@ -96,18 +96,6 @@ class HexBot:
         print("Move count:", self.move_count)
         self.board.display()
 
-    def make_move(self) -> None:
-        """ Generates a move, plays it for itself, and prints it to stdout
-
-        For now, the move is randomly selected from all empty positions
-        """
-        # if self.move_count < 4:
-            # move = self.early_move()
-        move = choice(list(self.board.empties.keys()))
-        self.sety(str(move))
-        print(move)
-        return
-
     def update_twobridges(self, coord: Coord) -> None:
         """ Update the TwoBridge statuses of nearby cells after a move
 
@@ -489,103 +477,6 @@ class HexBot:
 
         return str(choice(self.board.empties))
 
-    def late_move(self) -> str:
-        """ Determine what move to make if several pieces are already on the board
-
-        Returns:
-            moveToPlay(str): position of where to make move
-        """
-        moveToPlay = ""
-        
-        #TODO add jeopordized flag to bot class, which will be set in update_twobridges
-        # this way, we only do the following if we know we are jeopordized (saves time)
-        if self.jeopardized > 0:
-            if self.color == Color.WHITE:
-                for coord in self.board.whites:
-                    for destcoord in self.board.cells[coord].white_twobridges:
-                        bridge = self.board.cells[coord].white_twobridges[destcoord]
-                        if bridge.status == Status.JEOPARDY:
-                            for depcoord in bridge.depends:
-                                if self.board.cells[depcoord].color == Color.EMPTY:
-                                    moveToPlay = depcoord
-            else:
-                for coord in self.board.blacks:
-                    for destcoord in self.board.cells[coord].black_twobridges:
-                        bridge = self.board.cells[coord].black_twobridges[destcoord]
-                        if bridge.status == Status.JEOPARDY:
-                            for depcoord in bridge.depends:
-                                if self.board.cells[depcoord].color == Color.EMPTY:
-                                    moveToPlay = depcoord
-            self.jeopardized -= 1
-            # resolve a jeopardized two bridge
-            return str(moveToPlay)
-
-        # get the path and cost of path for both ourselves and of our opponents            
-        if self.color == Color.WHITE:
-            playerPath, playerCost = self.dijkstra(Edges.TOP, Edges.BOTTOM, self.color)
-            oppPath, oppCost = self.dijkstra(Edges.LEFT, Edges.RIGHT, self.opp)
-        else:
-            playerPath, playerCost = self.dijkstra(Edges.LEFT, Edges.RIGHT, self.color)
-            oppPath, oppCost = self.dijkstra(Edges.TOP, Edges.BOTTOM, self.opp)
-
-        # given the optimal path of coords, we extract which cells we want to play in:
-        # Ideal cells include: completing TO-BE twobridges, intersections between our path and opponents path
-
-        # if playerCost >>/> oppCost, consider a defensive move (cost measures how many pieces to secure path)
-        # elif playerCost == 0, play to win // TODO introduce bot flag for gaurunteed win to bypass computation?
-        # elif oppCost == 0, play to win (opp has garunteed win, play offensively to through them off)
-        # else play offensively, we have the advantage (group with oppCost == 0)
-
-        # search through both paths; identify how many more cells need to be played on to win
-        # (cost only gives how many pieces needed to secure the path)
-
-        playerMoves = [] # tuple list: stores moves we need to make alongside weight of the move
-        oppMoves = []    # stores opps best move with weighting
-
-        # weighting definition (us) (MIGHT WANT TO ADJUST):
-        #       0 : cell already has piece, no need to play in it
-        #       2 : cell is a dependancy of a successful two bridge (only one dependancy will be stored)
-        #       3 : cell is an empty that needs to be played in
-        #       5 : cell is a destination of a TO-BE twoBridge
-
-        
-        # origin = self.board.cells(playerPath[0])
-        # if origin.color == self.color:
-        #     playerMoves.append(origin, 0)
-        # for i in range(len(playerPath-1)):
-        #     origin = self.board.cells(playerPath[i])
-        #     nextCoord = playerPath[i+1]
-        #     # check the connection to nextCoord
-
-        #     if nextCoord in origin.neighbours:
-        #         if self.board.cells(nextCoord).color == self.color:
-        #             # if next cell is friendly and neighbour, add with cost zero
-        #             playerMoves.append(self.board.cells(playerPath[i+1]), 0)
-        #             continue
-        #         else:
-        #             # if cell is neighbour and empty, add with cost 1
-        #             playerMoves.append(self.board.cells(playerPath[i+1]), 1)
-        #             continue
-        #     # if the next cell is not a neighbour of previous, it must be a twobridge
-        #     if self.color == Color.WHITE:
-        #         for bridge in origin.white_twobridges:
-        #             # search for which two bridge it is a part of
-        #             if bridge.dest == nextCoord:
-        #                 # identify what kind of two bridge it is
-        #                 if bridge.status == Status.SUCCESS:
-        #                     #######
-        #                     # need to account for the symmetry of two-bridges
-        #                     #######
-        #                     pass
-
-        # for i in range(len(oppPath)):            
-        #     pass
-
-        # # add weight of oppMoves to playerMoves when they have common elements, then:
-        # moveToPlay = max(playerMoves)
-
-        return moveToPlay
-
     def dijkstra(self, start: Cell, goal: Cell, player: Color) -> tuple:
         """ Returns an optimal path between start and goal
 
@@ -619,11 +510,13 @@ class HexBot:
                 final_g = state.g
 
                 if player == Color.WHITE:
+                    path.append(state.coord)
                     while state.white_parent != state.coord:
                         # while parent is not itself (while it isn't start state):
                         path.append(state.white_parent)     # add parent to path
                         state = self.board.cells[state.white_parent]     # set the state to be the parent
                 else:
+                    path.append(state.coord)
                     while state.black_parent != state.coord:
                         path.append(state.black_parent)
                         state = self.board.cells[state.black_parent]
@@ -672,7 +565,7 @@ class HexBot:
                             g_values.append(state.g+0)
 
             else:
-                for destcoord in self.cells[state].black_twobridges:
+                for destcoord in self.board.cells[state.coord].black_twobridges:
                     bridge = self.board.cells[state.coord].black_twobridges[destcoord]
                     if bridge.status == Status.SUCCESS:
                         children.append(bridge.dest)
@@ -722,3 +615,182 @@ class HexBot:
 
         # if the loop has exited and no solution found, there is no solution, so return accordingly
         return path, final_g
+
+    def late_move(self) -> str:
+        """ Determine what move to make if several pieces are already on the board
+
+        Returns:
+            moveToPlay(str): position of where to make move
+        """
+        moveToPlay = ""
+        
+        # if we have more than 0 jeopordized twobridges, we want to save/destroy it/them; saving/destroying is priority move
+        # loop through and find where we are jeopardized; set moveToPlay to the last one found
+        if self.jeopardized > 0:
+            for coord in self.board.cells:
+                for destcoord in self.board.cells[coord].white_twobridges:
+                    bridge = self.board.cells[coord].white_twobridges[destcoord]
+                    if bridge.status == Status.JEOPARDY:
+                        for depcoord in bridge.depends:
+                            if self.board.cells[depcoord].color == Color.EMPTY:
+                                moveToPlay = depcoord
+                for destcoord in self.board.cells[coord].black_twobridges:
+                    bridge = self.board.cells[coord].black_twobridges[destcoord]
+                    if bridge.status == Status.JEOPARDY:
+                        for depcoord in bridge.depends:
+                            if self.board.cells[depcoord].color == Color.EMPTY:
+                                moveToPlay = depcoord
+            self.jeopardized -= 1
+            # resolve a jeopardized two bridge
+            return str(moveToPlay)
+
+        # get the path and cost of path for both ourselves and of our opponents            
+        if self.color == Color.WHITE:
+            playerPath, playerCost = self.dijkstra(self.board.cells[Edges.TOP], self.board.cells[Edges.BOTTOM], self.color)
+            oppPath, oppCost = self.dijkstra(self.board.cells[Edges.LEFT], self.board.cells[Edges.RIGHT], self.opp)
+        else:
+            playerPath, playerCost = self.dijkstra(self.board.cells[Edges.LEFT], self.board.cells[Edges.RIGHT], self.color)
+            oppPath, oppCost = self.dijkstra(self.board.cells[Edges.TOP], self.board.cells[Edges.BOTTOM], self.opp)
+
+        playerMoves = [] # tuple list: stores moves we need to make alongside weight of the move
+        oppMoves = []    # stores opps best move with weighting
+
+        # weighting definition:
+        #       0 : cell already has piece, no need to play in it (we may want to exclude these from the list)
+        #     0.5 : cell is a dependancy of a successful bridge (very little reason for us to play here)
+        #       1 : cell is a dependancy of a two bridge (only one dependancy will be stored)
+        #       2 : cell is an empty neighbour that needs to be played in
+        #       4 : cell is a destination of a TO-BE twoBridge
+
+        # for the following, we may want to exlcude weight 0s
+        # define playerMoves if we are white
+        if self.color == Color.WHITE:
+            for i in range(1, len(playerPath)):
+                node = self.board.cells[playerPath[i]]
+                if playerPath[i] in self.board.cells[playerPath[i-1]].neighbours:
+                    # if the first state returned by dijkstra is a neighbour of parent
+                   if node.color == Color.EMPTY:
+                        playerMoves.append((node.coord, 2))
+                else:
+                    # if the state returned by dijkstra is not a neighbour of the parent, it must be twobridge
+                    if self.board.cells[playerPath[i-1]].white_twobridges[playerPath[i]].status == Status.TO_BE or \
+                            self.board.cells[playerPath[i-1]].white_twobridges[playerPath[i]].status == Status.READY:
+                        # if dijkstra returned a TO_BE or READY, then add dest with weight 4 and deps at weight 1
+                        playerMoves.append((self.board.cells[playerPath[i-1]].white_twobridges[playerPath[i]].depends[0], 1))
+                        playerMoves.append((playerPath[i], 4))
+                    else:
+                        # if two bridge was not a TO_BE or READY, then it must have been SUCCESS, which means
+                        playerMoves.append((self.board.cells[playerPath[i-1]].white_twobridges[playerPath[i]].depends[0], 0.5))
+            
+            # def oppMoves (they are black)
+            for i in range(1, len(oppPath)):
+                node = self.board.cells[oppPath[i]]
+                if node.coord in self.board.cells[oppPath[i-1]].neighbours:
+                    # if the state returned by dijkstra is a neighbour of the parent
+                    if node.color == Color.EMPTY: 
+                        oppMoves.append((node.coord, 2))
+                else:
+                    # if the state returned by dijkstra is not a neighbour, it must be twobridge
+                    if self.board.cells[oppPath[i-1]].black_twobridges[oppPath[i]].status == Status.TO_BE or \
+                            self.board.cells[oppPath[i-1]].black_twobridges[oppPath[i]].status == Status.READY:
+                        # if dijkstra returned a TO_BE or READY, then add dest with weight 4 and deps at weight 1
+                        oppMoves.append((self.board.cells[oppPath[i-1]].black_twobridges[oppPath[i]].depends[0], 1))
+                        oppMoves.append((oppPath[i], 4))
+                    else:
+                        # if two bridge was not a TO_BE or READY, then it must have been SUCCESS, which means
+                        oppMoves.append((self.board.cells[oppPath[i-1]].black_twobridges[oppPath[i]].depends[0], 0.5))
+
+        else:
+            # player (we) is black
+            for i in range(1, len(playerPath)):
+                node = self.board.cells[playerPath[i]]
+                if node.coord in self.board.cells[playerPath[i-1]].neighbours:
+                    # if the first state returned by dijkstra is a neighbour of the edge
+                    if node.color == Color.EMPTY:
+                        playerMoves.append((node.coord, 2))
+                else:
+                    # if the first state returned by dijkstra is not a neighbour of the edge, it must be twobridge
+                    if self.board.cells[playerPath[i-1]].black_twobridges[playerPath[i]].status == Status.TO_BE or \
+                            self.board.cells[playerPath[i-1]].black_twobridges[playerPath[i]].status == Status.READY:
+                        # if dijkstra returned a TO_BE or READY, then add dest with weight 4 and deps at weight 1
+                        playerMoves.append((self.board.cells[playerPath[i-1]].black_twobridges[playerPath[i]].depends[0], 1))
+                        playerMoves.append((playerPath[i], 4))
+                    else:
+                        # if two bridge was not a TO_BE or READY, then it must have been SUCCESS, which means
+                        playerMoves.append((self.board.cells[playerPath[i-1]].black_twobridges[playerPath[i]].depends[0], 0.5))
+
+            # def oppMoves (they are white)
+            for i in range(1, len(oppPath)):
+                node = self.board.cells[oppPath[i]]
+                if node.coord in self.board.cells[oppPath[i-1]].neighbours:
+                    # if the first state returned by dijkstra is a neighbour of the edge
+                    if node.color == Color.EMPTY:
+                        oppMoves.append((node.coord, 2))
+                else:
+                    # if the first state returned by dijkstra is not a neighbour of the edge, it must be twobridge
+                    if self.board.cells[oppPath[i-1]].white_twobridges[oppPath[i]].status == Status.TO_BE or \
+                            self.board.cells[oppPath[i-1]].white_twobridges[oppPath[i]].status == Status.READY:
+                        # if dijkstra returned a TO_BE or READY, then add dest with weight 4 and deps at weight 1
+                        oppMoves.append((self.board.cells[oppPath[i-1]].white_twobridges[oppPath[i]].depends[0], 1))
+                        oppMoves.append((oppPath[i], 4))
+                    else:
+                        # if two bridge was not a TO_BE or READY, then it must have been SUCCESS, which means
+                        oppMoves.append((self.board.cells[oppPath[i-1]].white_twobridges[oppPath[i]].depends[0], 0.5))
+
+        # if we have not garunteed us a win, play more cautiously 
+        #       (consider the weights of our opponents as well as ours) - update playerMoves to reflect this
+        if playerCost != 0:
+            # get the intersection of coords between playerMoves and oppMoves
+            playerSet = set()
+            oppSet = set()
+            for pair in playerMoves:
+                playerSet.add(pair[0])
+            for pair in oppMoves:
+                oppSet.add(pair[0])
+            intersection = playerSet.intersection(oppSet)
+
+            # for every coord in the intersection, add the weights of the two moves together and store in playerMoves
+            for coord in intersection:
+                for i in range(len(playerMoves)):
+                    if playerMoves[i][0] == coord:
+                        for j in range(len(oppMoves)):
+                            # search through the list until we find the positions where the coords intersect
+                            # sum the weights and store in playerMoves
+                            if playerMoves[i][0] == oppMoves[j][0]:
+                                # the following addition statement may be changed to account for differences in g-values
+                                # (diff in g-value will represent how bad of a defensive move we need to play)
+                                temp = list (playerMoves[i])
+                                temp[1] = playerMoves[i][1] + 1.5*oppMoves[j][1]
+                                playerMoves[i] = tuple(temp)
+                                break
+                        break
+        
+        # potentially implement
+        # if playerCost >>/> oppCost, consider a defensive move (cost measures how many pieces to secure path)
+        # elif oppCost == 0, play to win (opp has garunteed win, play offensively to through them off)
+        # else play offensively, we have the advantage (group with oppCost == 0)
+
+        # find the coord with the max weight in playerMoves
+        # initialize the moveToPlay to be first of playerMoves to compare other values against
+        moveToPlay = playerMoves[0][0]
+        highest_weight = playerMoves[0][1]
+        for move in playerMoves:
+            # if we find a higher weighting, then set move to play equal to this weighting
+            if move[1] > highest_weight:
+                moveToPlay = move[0]
+                highest_weight = move[1]
+
+        return str(moveToPlay)
+
+    def make_move(self) -> None:
+        """ Generates a move, plays it for itself, and prints it to stdout
+
+        For now, the move is randomly selected from all empty positions
+        """
+        if self.move_count >= 4:
+            move = self.late_move()
+        else:
+            move = self.early_move()
+        self.sety(str(move))
+        print(move)
+        return
