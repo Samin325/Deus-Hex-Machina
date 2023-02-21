@@ -14,7 +14,7 @@ class Status(Enum):
     FAIL = -1       # dest/orig hostile / deps both hostile / orig/dest empty, dep hostile
     HALFWAY = 0.5   # dest+orig not hostile, any deps friendly
     READY = 0       # everything empty
-    TO_BE = 1       # orig friendly, deps+dest empty / dest friendly, deps+orig empty
+    TO_BE = 1       # orig friendly, deps+dest empty (forwards) / dest friendly, deps+orig empty (backwards)
     SUCCESS = 2     # orig+dest friendly, deps empty
     JEOPARDY = 4    # orig+dest friendly, 1dep hostile
 
