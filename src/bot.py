@@ -24,6 +24,7 @@ class HexBot:
         self.color = color
         self.opp = Color.BLACK if color == Color.WHITE else Color.WHITE
         self.move_count = 0
+        self.swap_happened = False
         self.jeopardized = 0
         self.init_board(board_size)
 
@@ -172,6 +173,7 @@ class HexBot:
             return False
         self.opp, self.color = self.color, self.opp
         self.move_count += 1
+        self.swap_happened = True
         return True
 
     def unset(self, move: str) -> bool:
@@ -210,39 +212,270 @@ class HexBot:
         Returns: (str)
             Human-readable coordinate on which we decide to make our move
         """
+        white_bad_moves = ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", \
+                           "j10", "j9", "j8", "j7", "j6", "j5", "j4", "j3", "j2", \
+                            "b1", "b2", "i9", "i10"]
+
+        black_bad_moves = ["a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "i1", \
+                           "j10", "i10", "h10", "g10", "f10", "e10", "d10", "c10", "b10", \
+                            "a2", "b2", "i9", "j9"]
+
         if self.move_count == 0:
             return "b2"
+
         if self.move_count == 1:
             if self.color == Color.WHITE:
                 for coord in self.board.blacks:
                     if coord not in (Edges.LEFT, Edges.RIGHT):
                         first_move = coord
-                if first_move.getx() == 1 or first_move.getx() == 10:
-                    if first_move in (Coord(1, 10), Coord(10, 1)):
-                        return "swap"
-                else:
-                    if first_move not in (Coord(2, 1), Coord(2, 2), Coord(9, 9), Coord(9, 10)):
-                        return "swap"
-                return "e6"  # didn't swap
+                return "e6" if first_move in white_bad_moves else "swap"
             else:
                 for coord in self.board.whites:
                     if coord not in (Edges.TOP, Edges.BOTTOM):
                         first_move = coord
-                if first_move.gety() == 1 or first_move.gety() == 10:
-                    if first_move in (Coord(10, 1), Coord(1, 10)):
-                        return "swap"
-                else:
-                    if first_move not in (Coord(1, 2), Coord(2, 2), Coord(9, 9), Coord(10, 9)):
-                        return "swap"
-                return "f5"  # didn't swap
+                return "f5" if first_move in black_bad_moves else "swap"
+
         if self.move_count == 2:
-            if len(self.board.blacks) == 3 and len(self.board.whites) == 3:
-                # swap move DID NOT occur. fight for control
-                # TODO: figure out how to contest/block in early game
-                return "BRUH"
+            if not self.swap_happened:
+                # they DID NOT swap move. fight for control, ideally blocking
+                # we have a piece on b2, they have a piece somewhere
+                if self.color == Color.WHITE:
+                    for coord in self.board.blacks:
+                        if coord not in (Edges.LEFT, Edges.RIGHT):
+                            their_move = coord
+                    # if they played centrally, perform classic block on their far side
+                    if str(their_move) in ("d5"):
+                        return "g4"
+                    elif str(their_move) in ("e5"):
+                        return "h4"
+                    elif str(their_move) in ("f5"):
+                        return "c6"
+                    elif str(their_move) in ("g5"):
+                        return "d6"
+                    elif str(their_move) in ("d6"):
+                        return "g5"
+                    elif str(their_move) in ("e6"):
+                        return "h5"
+                    elif str(their_move) in ("f6"):
+                        return "c7"
+                    elif str(their_move) in ("g6"):
+                        return "d7"
+                    elif str(their_move) in ("d7", "e7"):
+                        return "g6"
+                    elif str(their_move) in ("f7"):
+                        return "c7"
+                    elif str(their_move) in ("g7"):
+                        return "d7"
+                    elif str(their_move) in ("d4"):
+                        return "g4"
+                    elif str(their_move) in ("e4"):
+                        return "h4"
+                    elif str(their_move) in ("f4", "g4"):
+                        return "d5"
+                    # if they didn't centrally, then we claim the centre
+                    else:
+                        return "e6"
+                else:
+                    for coord in self.board.whites:
+                        if coord not in (Edges.TOP, Edges.BOTTOM):
+                            their_move = coord
+                    # if they played centrally, perform classic block on their far side
+                    if str(their_move) in ("e4"):
+                        return "d7"
+                    elif str(their_move) in ("e5"):
+                        return "d8"
+                    elif str(their_move) in ("e6"):
+                        return "f3"
+                    elif str(their_move) in ("e7"):
+                        return "f4"
+                    elif str(their_move) in ("f4"):
+                        return "e7"
+                    elif str(their_move) in ("f5"):
+                        return "e8"
+                    elif str(their_move) in ("f6"):
+                        return "g3"
+                    elif str(their_move) in ("f7"):
+                        return "g4"
+                    elif str(their_move) in ("g4", "g5"):
+                        return "f7"
+                    elif str(their_move) in ("g6"):
+                        return "g3"
+                    elif str(their_move) in ("g7"):
+                        return "g4"
+                    elif str(their_move) in ("d4"):
+                        return "d7"
+                    elif str(their_move) in ("d5"):
+                        return "d8"
+                    elif str(their_move) in ("d6", "d7"):
+                        return "e4"
+                    # if they didn't centrally, then we claim the centre
+                    else:
+                        return "f5"
             else:
                 # swap move occurred. claim centre
+                # this means opponent has a piece in b2 now
+                # (or they didn't swap, but didn't play centrally)
                 return "e6" if self.color == Color.WHITE else "f5"
+
+        if self.move_count == 3:
+            if not self.swap_happened:
+                if self.color == Color.WHITE:
+                    for coord in self.board.blacks:
+                        if coord not in (Edges.LEFT, Edges.RIGHT):
+                            if str(coord) not in white_bad_moves:
+                                last_move = coord
+                                break
+                    else:
+                        for coord in self.board.blacks:
+                            if coord not in (Edges.LEFT, Edges.RIGHT):
+                                last_move = coord
+                    if last_move.gety() > 6:
+                        if self.board.cells[Coord(4, 7)].color == Color.BLACK:
+                            return "f7"
+                        elif self.board.cells[Coord(5, 7)].color == Color.BLACK:
+                            return "d7"
+                        elif self.board.cells[Coord(4, 9)].color == Color.BLACK:
+                            return "g7"
+                        elif self.board.cells[Coord(3, 9)].color == Color.BLACK:
+                            return "f7"
+                        elif self.board.cells[Coord(4, 8)].color == Color.BLACK:
+                            return "f7"
+                        else:
+                            return "d8"
+                    else:
+                        if self.board.cells[Coord(5, 5)].color == Color.BLACK:
+                            return "f5"
+                        elif self.board.cells[Coord(6, 5)].color == Color.BLACK:
+                            return "e5"
+                        for x in range(1, 11):
+                            if self.board.cells[Coord(x, 5)].color == Color.BLACK or \
+                                    self.board.cells[Coord(x, 6)].color == Color.BLACK:
+                                return "f4"
+                        right_of_f = False
+                        for x in range(1, 6):
+                            for y in range(6, 11):
+                                if self.board.cells[Coord(x, y)].color == Color.BLACK:
+                                    right_of_f = True
+                        if not right_of_f:
+                            return "h3"
+                        else:
+                            return "e3"
+                else:  # we are black
+                    for coord in self.board.whites:
+                        if coord not in (Edges.TOP, Edges.BOTTOM):
+                            if str(coord) not in black_bad_moves:
+                                last_move = coord
+                                break
+                    else:
+                        for coord in self.board.blacks:
+                            if coord not in (Edges.TOP, Edges.BOTTOM):
+                                last_move = coord
+                    if last_move.getx() > 6:
+                        if self.board.cells[Coord(7, 4)].color == Color.WHITE:
+                            return "g6"
+                        elif self.board.cells[Coord(7, 5)].color == Color.WHITE:
+                            return "g4"
+                        elif self.board.cells[Coord(9, 4)].color == Color.WHITE:
+                            return "g7"
+                        elif self.board.cells[Coord(9, 3)].color == Color.WHITE:
+                            return "g6"
+                        elif self.board.cells[Coord(8, 4)].color == Color.WHITE:
+                            return "g6"
+                        else:
+                            return "h4"
+                    else:
+                        if self.board.cells[Coord(5, 5)].color == Color.WHITE:
+                            return "e6"
+                        elif self.board.cells[Coord(6, 5)].color == Color.WHITE:
+                            return "e5"
+                        for y in range(1, 11):
+                            if self.board.cells[Coord(5, y)].color == Color.WHITE or \
+                                    self.board.cells[Coord(6, y)].color == Color.WHITE:
+                                return "d6"
+                        above_6 = False
+                        for x in range(1, 5):
+                            for y in range(6, 11):
+                                if self.board.cells[Coord(x, y)].color == Color.WHITE:
+                                    above_6 = True
+                        if not above_6:
+                            return "c8"
+                        else:
+                            return "c5"
+            else:  # swap happened
+                if self.color == Color.WHITE:
+                    for coord in self.board.blacks:
+                        if coord not in (Edges.LEFT, Edges.RIGHT):
+                            their_move = coord
+                    # if they played centrally, perform classic block on their far side
+                    if str(their_move) in ("d5"):
+                        return "g4"
+                    elif str(their_move) in ("e5"):
+                        return "h4"
+                    elif str(their_move) in ("f5"):
+                        return "c6"
+                    elif str(their_move) in ("g5"):
+                        return "d6"
+                    elif str(their_move) in ("d6"):
+                        return "g5"
+                    elif str(their_move) in ("e6"):
+                        return "h5"
+                    elif str(their_move) in ("f6"):
+                        return "c7"
+                    elif str(their_move) in ("g6"):
+                        return "d7"
+                    elif str(their_move) in ("d7", "e7"):
+                        return "g6"
+                    elif str(their_move) in ("f7"):
+                        return "c7"
+                    elif str(their_move) in ("g7"):
+                        return "d7"
+                    elif str(their_move) in ("d4"):
+                        return "g4"
+                    elif str(their_move) in ("e4"):
+                        return "h4"
+                    elif str(their_move) in ("f4", "g4"):
+                        return "d5"
+                    # if they didn't centrally, then we claim the centre
+                    else:
+                        return "e6"
+                else:
+                    for coord in self.board.whites:
+                        if coord not in (Edges.TOP, Edges.BOTTOM):
+                            their_move = coord
+                    # if they played centrally, perform classic block on their far side
+                    if str(their_move) in ("e4"):
+                        return "d7"
+                    elif str(their_move) in ("e5"):
+                        return "d8"
+                    elif str(their_move) in ("e6"):
+                        return "f3"
+                    elif str(their_move) in ("e7"):
+                        return "f4"
+                    elif str(their_move) in ("f4"):
+                        return "e7"
+                    elif str(their_move) in ("f5"):
+                        return "e8"
+                    elif str(their_move) in ("f6"):
+                        return "g3"
+                    elif str(their_move) in ("f7"):
+                        return "g4"
+                    elif str(their_move) in ("g4", "g5"):
+                        return "f7"
+                    elif str(their_move) in ("g6"):
+                        return "g3"
+                    elif str(their_move) in ("g7"):
+                        return "g4"
+                    elif str(their_move) in ("d4"):
+                        return "d7"
+                    elif str(their_move) in ("d5"):
+                        return "d8"
+                    elif str(their_move) in ("d6", "d7"):
+                        return "e4"
+                    # if they didn't centrally, then we claim the centre
+                    else:
+                        return "f5"
+
+        return str(choice(self.board.empties))
 
     def dijkstra(self, start: Cell, goal: Cell, player: Color) -> tuple:
         """ Returns an optimal path between start and goal
